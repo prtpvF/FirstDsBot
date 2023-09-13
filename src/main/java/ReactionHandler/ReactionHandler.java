@@ -31,29 +31,30 @@ public class ReactionHandler extends ListenerAdapter {
             // Сравниваем имя эмодзи с ожидаемыми значениями и добавляем роли
             if (emojiName.equals("pm")) {
                 // Добавляем роль "если торгуешь утром Гью-Йорка"
-                Role role = guild.getRolesByName("если мучаешь вечернюю Нью-Йоркскую сессию", true).get(0);
+                Role role = guild.getRolesByName("PM", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             } else if (emojiName.equals("lo")) {
                 // Добавляем роль "если торгуешь лондон"
-                Role role = guild.getRolesByName("если торгуешь лондон", true).get(0);
+                Role role = guild.getRolesByName("LO", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             } else if (emojiName.equals("am")) {
                 // Добавляем роль "если мучаешь вечернюю Нью-Йоркскую сессию"
 
-                Role role = guild.getRolesByName("если торгуешь утром Нью-Йорка", true).get(0);
+                Role role = guild.getRolesByName("AM", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             }
         }
     }
 
     @Override
-    public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
+    public void onMessageReactionRemove(MessageReactionRemoveEvent event) {
+        // Проверяем, что реакция была удалена из нужного сообщения
         if (event.getMessageIdLong() == message.getIdLong()) {
             // Получаем имя (или Unicode-символ) удаленной реакции
             String emojiName = event.getReactionEmote().getName();
 
-            // Получаем объект пользователя
-            Member member = event.getMember();
+            // Получаем ID пользователя
+            long userId = event.getUserIdLong();
 
             // Получаем объект сервера
             Guild guild = event.getGuild();
@@ -61,17 +62,18 @@ public class ReactionHandler extends ListenerAdapter {
             // Сравниваем имя удаленной реакции с ожидаемыми значениями и удаляем соответствующие роли
             if (emojiName.equals("pm")) {
                 // Удаляем роль "если торгуешь утром Гью-Йорка"
-                Role role = guild.getRolesByName("если торгуешь утром Гью-Йорка", true).get(0);
-                guild.removeRoleFromMember(member, role).queue();
+                Role role = guild.getRolesByName("PM", true).get(0);
+                guild.removeRoleFromMember(userId, role).queue();
             } else if (emojiName.equals("lo")) {
                 // Удаляем роль "если торгуешь лондон"
-                Role role = guild.getRolesByName("если торгуешь лондон", true).get(0);
-                guild.removeRoleFromMember(member, role).queue();
+                Role role = guild.getRolesByName("LO", true).get(0);
+                guild.removeRoleFromMember(userId, role).queue();
             } else if (emojiName.equals("am")) {
                 // Удаляем роль "если мучаешь вечернюю Нью-Йоркскую сессию"
-                Role role = guild.getRolesByName("если мучаешь вечернюю Нью-Йоркскую сессию", true).get(0);
-                guild.removeRoleFromMember(member, role).queue();
+                Role role = guild.getRolesByName("AM", true).get(0);
+                guild.removeRoleFromMember(userId, role).queue();
             }
         }
     }
+
 }
