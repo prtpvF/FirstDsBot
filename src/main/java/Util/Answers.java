@@ -29,4 +29,16 @@ public class Answers {
         PM_Answers.add("-14:50-15:05 (utc-4) свинг под ласт аур, и ралли за полкой?");
         PM_Answers.add("-это был хороший день, он подарил тебе бесценный опыт, похвали себя за знания которые сегодня приобрел!");
     }
+
+    public List<String> getLO_Answers() {
+        return LO_Answers;
+    }
+
+    public List<String> getAM_Answers() {
+        return AM_Answers;
+    }
+
+    public List<String> getPM_Answers() {
+        return PM_Answers;
+    }
 }

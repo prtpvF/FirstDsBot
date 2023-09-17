@@ -1,15 +1,26 @@
 package ReactionHandler;
 
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ReactionHandler extends ListenerAdapter {
     private final Message message;
+    private List<Role> addedRoles = new ArrayList<>();
+    private List<Role> removedRoles = new ArrayList<>();
+    private ScheduledExecutorService executorService;
+    private boolean isStarted = false;
+
 
     public ReactionHandler(Message message) {
         this.message = message;
@@ -17,6 +28,7 @@ public class ReactionHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
+
         // Проверяем, что реакция добавлена к нужному сообщению
         if (event.getMessageIdLong() == message.getIdLong()) {
             // Получаем имя (или Unicode-символ) эмодзи, на которое пользователь нажал
@@ -44,6 +56,7 @@ public class ReactionHandler extends ListenerAdapter {
                 guild.addRoleToMember(member, role).queue();
             }
         }
+
     }
 
     @Override
@@ -76,4 +89,5 @@ public class ReactionHandler extends ListenerAdapter {
         }
     }
 
-}
+    }
+
