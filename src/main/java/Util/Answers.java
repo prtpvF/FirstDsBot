@@ -29,6 +29,12 @@ public class Answers {
         PM_Answers.add("-14:50-15:05 (utc-4) свинг под ласт аур, и ралли за полкой?");
         PM_Answers.add("-это был хороший день, он подарил тебе бесценный опыт, похвали себя за знания которые сегодня приобрел!");
     }
+    List<String> MEMBER_Answers = new ArrayList<>();
+    {
+        MEMBER_Answers.add("-доброе утро, тигр! ты знаешь своих демонов и как с ними бороться, твоя торговля становится лучше каждый день," + "\n" + "сегодня ты снова порвешь рынок!");
+        MEMBER_Answers.add("-как сегодня прошла твоя медитация?");
+        MEMBER_Answers.add("-это был хороший день, он подарил тебе бесценный опыт, похвали себя за знания которые сегодня приобрел!");
+    }
 
     public List<String> getLO_Answers() {
         return LO_Answers;
@@ -40,5 +46,9 @@ public class Answers {
 
     public List<String> getPM_Answers() {
         return PM_Answers;
+    }
+
+    public List<String> getMEMBER_Answers() {
+        return MEMBER_Answers;
     }
 }

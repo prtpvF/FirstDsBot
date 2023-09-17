@@ -10,7 +10,7 @@ import ReactionHandler.ReactionHandler;
 public class Main  extends ListenerAdapter {
 
     public static void main(String[] args) throws Exception {
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.Gc8kyK.r9InJD5Imebav8_Sd-C_wZWxy4Y7QEajv1Ul8s")
+        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GZZa6G.VsU7HPomib2oE-Evykomt_6FxiNWeMIVpn0_ds")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
@@ -32,7 +32,9 @@ public class Main  extends ListenerAdapter {
         // Добавляем обработчик реакций для этого сообщения
         jda.addEventListener(new ReactionHandler(message));
         jda.addEventListener(new MessageLoHandler());
-        jda.addEventListener(new Main());
+        jda.addEventListener(new MessageAmHandler());
+        jda.addEventListener(new MessagePmHandler());
+        jda.addEventListener(new MemberMessageHandler());
 
     }
 

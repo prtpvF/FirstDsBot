@@ -42,7 +42,7 @@ public class MessageLoHandler extends ListenerAdapter {
 
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
-                LocalTime.of(18, 6), // Пример времени (12:00)
+                LocalTime.of(9, 0), // Пример времени (12:00)
                 LocalTime.of(9, 25), // Пример времени (15:00)
                 // Добавьте дополнительные времена сюда
                 LocalTime.of(9, 55),  // Пример времени (09:00)
