@@ -10,7 +10,7 @@ import ReactionHandler.ReactionHandler;
 public class Main  extends ListenerAdapter {
 
     public static void main(String[] args) throws Exception {
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GZZa6G.VsU7HPomib2oE-Evykomt_6FxiNWeMIVpn0_ds")
+        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GU665-.bTUOAOneF8UQDUFUZpKtAmO-W9LmPOm0u8fV4I")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
