@@ -1,3 +1,4 @@
+import com.sun.net.httpserver.HttpServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -7,9 +8,18 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import ReactionHandler.ReactionHandler;
 
+import java.net.InetSocketAddress;
+
 public class Main  extends ListenerAdapter {
 
     public static void main(String[] args) throws Exception {
+        int port = Integer.parseInt(System.getenv("PORT"));
+
+        // Создаем HTTP-сервер для "привязки" к порту
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+
+        // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
+        server.start();
         JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GU665-.bTUOAOneF8UQDUFUZpKtAmO-W9LmPOm0u8fV4I")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
