@@ -1,4 +1,6 @@
 import Util.Answers;
+import Util.ID;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -12,19 +14,36 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MessageAmHandler extends ListenerAdapter {
-    private static final String CHANNEL_ID = "1151906690233540778"; // Замените на ID вашего канала
     private static final String ROLE_NAME = "AM"; // Название роли
+    private static ID all_id;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private JDA jda;
+    boolean isRunning;
+    private Guild guild;
     Answers answers = new Answers();
+
+    public MessageAmHandler(JDA jda, Guild guild) {
+        this.jda = jda;
+        this.guild = guild;
+
+    }
+
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ");
         if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            startSendingMessages(event.getGuild());
+            if (!isRunning) { // Проверяем, не запущен ли бот уже
+                startSendingMessages(event.getGuild());
+                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
+
+            } else {
+                event.getChannel().sendMessage("Бот уже запущен.").queue();
+            }
         } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
             scheduler.shutdownNow();
-
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
         }
     }
 
@@ -48,7 +67,7 @@ public class MessageAmHandler extends ListenerAdapter {
 
             // Создаем задачу для отправки сообщения
             Runnable task = () -> {
-                sendMessage(guild, message);
+                sendMessage(message);
                 System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
             };
 
@@ -63,16 +82,16 @@ public class MessageAmHandler extends ListenerAdapter {
             long delayMillis = calculateDelay(currentTime, sendTime);
 
             // Планируем задачу
-            scheduler.schedule(task, delayMillis, TimeUnit.MILLISECONDS);
+            scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
         }
 
         System.out.println("All messages scheduled.");
     }
 
-    private void sendMessage(Guild guild, String message) {
+    private void sendMessage(String message) {
+        Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
-        TextChannel channel = guild.getTextChannelById(CHANNEL_ID);
-
+        TextChannel channel = guild.getTextChannelById("1151906690233540778");
         if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
         }
