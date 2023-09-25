@@ -1,3 +1,4 @@
+import Util.ID;
 import com.sun.net.httpserver.HttpServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -13,6 +14,7 @@ import java.net.InetSocketAddress;
 public class Main  extends ListenerAdapter {
 
     public static void main(String[] args) throws Exception {
+
         String portStr = System.getenv("PORT");
         int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
 
@@ -21,7 +23,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GE0gog.kZMVbPRijJwHdx8OJZzfoBw1p5gMhArOQt6Jwk")
+        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
@@ -39,13 +41,17 @@ public class Main  extends ListenerAdapter {
                                                     + "LO - если торгуешь Лондон" +'\n'
                                                     + "AM - если торгуешь утро Нью-Йорка" +'\n'
                                                     + "PM -  если мучаешь вечернюю Нью-Йоркскую сессию").complete();
+        Guild guild = jda.getGuildById("1147457730110558310");
+
+        // Добавляем обработчик реакций для этого сообщения
+
 
         // Добавляем обработчик реакций для этого сообщения
         jda.addEventListener(new ReactionHandler(message));
-        jda.addEventListener(new MessageLoHandler());
-        jda.addEventListener(new MessageAmHandler());
-        jda.addEventListener(new MessagePmHandler());
-        jda.addEventListener(new MemberMessageHandler());
+        jda.addEventListener(new MessageLoHandler(jda,guild));
+        jda.addEventListener(new MessageAmHandler(jda, guild));
+        jda.addEventListener(new MessagePmHandler(jda, guild));
+        jda.addEventListener(new MemberMessageHandler(jda, guild));
 
     }
 
