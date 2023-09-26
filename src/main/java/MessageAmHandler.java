@@ -54,38 +54,39 @@ public class MessageAmHandler extends ListenerAdapter {
                 LocalTime.of(16, 45),
                 LocalTime.of(16, 55),
                 LocalTime.of(17, 45),
-                LocalTime.of(18,45),
-                LocalTime.of(19,0)
+                LocalTime.of(18, 45),
+                LocalTime.of(19, 0)
         };
 
         List<String> amAnswers = answers.getAM_Answers();
+        while (true) {
+            for (int i = 0; i < sendTimes.length; i++) {
+                final int index = i;
+                LocalTime sendTime = sendTimes[i];
+                String message = amAnswers.get(i);
 
-        for (int i = 0; i < sendTimes.length; i++) {
-            final int index = i;
-            LocalTime sendTime = sendTimes[i];
-            String message = amAnswers.get(i);
+                // Создаем задачу для отправки сообщения
+                Runnable task = () -> {
+                    sendMessage(message);
+                    System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
+                };
 
-            // Создаем задачу для отправки сообщения
-            Runnable task = () -> {
-                sendMessage(message);
-                System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
-            };
+                // Получаем текущее время
+                LocalTime currentTime = LocalTime.now();
 
-            // Получаем текущее время
-            LocalTime currentTime = LocalTime.now();
+                // Если sendTime меньше или равно текущему времени, переносим на следующий день
+                if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
+                    sendTime = sendTime.plusHours(24);
+                }
 
-            // Если sendTime меньше или равно текущему времени, переносим на следующий день
-            if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
-                sendTime = sendTime.plusHours(24);
+                long delayMillis = calculateDelay(currentTime, sendTime);
+
+                // Планируем задачу
+                scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
             }
 
-            long delayMillis = calculateDelay(currentTime, sendTime);
-
-            // Планируем задачу
-            scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
+            System.out.println("All messages scheduled.");
         }
-
-        System.out.println("All messages scheduled.");
     }
 
     private void sendMessage(String message) {

@@ -39,12 +39,12 @@ public class MessagePmHandler extends ListenerAdapter {
                 startSendingMessages(event.getGuild());
                 isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
 
+            }else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+                scheduler.shutdownNow();
+                isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+                event.getChannel().sendMessage("Бот остановлен.").queue();
             }
 
-        } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-            scheduler.shutdownNow();
-            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-            event.getChannel().sendMessage("Бот остановлен.").queue();
         }
     }
 
@@ -59,48 +59,49 @@ public class MessagePmHandler extends ListenerAdapter {
                 LocalTime.of(20, 55),  // Пример времени (09:00)
                 LocalTime.of(21, 5),  // Пример времени (18:00)
                 LocalTime.of(21, 45),
-                LocalTime.of(22,15),
-                LocalTime.of(22,50),
-                LocalTime.of(23,26),
-                LocalTime.of(0,20),
-                LocalTime.of(1,0),
-                LocalTime.of(2,0),
-                LocalTime.of(3,0),
-                LocalTime.of(4,0),
-                LocalTime.of(5,0),
-                LocalTime.of(6,0),
-                LocalTime.of(7,0),
-                LocalTime.of(8,0)
+                LocalTime.of(22, 15),
+                LocalTime.of(22, 50),
+                LocalTime.of(23, 26),
+                LocalTime.of(0, 20),
+                LocalTime.of(1, 0),
+                LocalTime.of(2, 0),
+                LocalTime.of(3, 0),
+                LocalTime.of(4, 0),
+                LocalTime.of(5, 0),
+                LocalTime.of(6, 0),
+                LocalTime.of(7, 0),
+                LocalTime.of(8, 0)
         };
 
         List<String> amAnswers = answers.getPM_Answers();
+        while (true) {
+            for (int i = 0; i < sendTimes.length; i++) {
+                final int index = i;
+                LocalTime sendTime = sendTimes[i];
+                String message = amAnswers.get(i);
 
-        for (int i = 0; i < sendTimes.length; i++) {
-            final int index = i;
-            LocalTime sendTime = sendTimes[i];
-            String message = amAnswers.get(i);
+                // Создаем задачу для отправки сообщения
+                Runnable task = () -> {
+                    sendMessage(message);
+                    System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
+                };
 
-            // Создаем задачу для отправки сообщения
-            Runnable task = () -> {
-                sendMessage(message);
-                System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
-            };
+                // Получаем текущее время
+                LocalTime currentTime = LocalTime.now();
 
-            // Получаем текущее время
-            LocalTime currentTime = LocalTime.now();
+                // Если sendTime меньше или равно текущему времени, переносим на следующий день
+                if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
+                    sendTime = sendTime.plusHours(24);
+                }
 
-            // Если sendTime меньше или равно текущему времени, переносим на следующий день
-            if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
-                sendTime = sendTime.plusHours(24);
+                long delayMillis = calculateDelay(currentTime, sendTime);
+
+                // Планируем задачу
+                scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
             }
 
-            long delayMillis = calculateDelay(currentTime, sendTime);
-
-            // Планируем задачу
-            scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
+            System.out.println("All messages scheduled.");
         }
-
-        System.out.println("All messages scheduled.");
     }
 
     private void sendMessage(String message) {
