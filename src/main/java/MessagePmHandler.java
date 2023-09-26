@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,6 +24,7 @@ public class MessagePmHandler extends ListenerAdapter {
     boolean isRunning;
     private JDA jda;
     private Guild guild;
+    private ZonedDateTime lastExecution = null;
 
     public MessagePmHandler(JDA jda, Guild guild) {
         this.jda = jda;
@@ -48,6 +51,7 @@ public class MessagePmHandler extends ListenerAdapter {
         }
     }
 
+
     private void startSendingMessages(Guild guild) {
         System.out.println("Starting to send messages...");
 
@@ -62,8 +66,8 @@ public class MessagePmHandler extends ListenerAdapter {
                 LocalTime.of(22, 15),
                 LocalTime.of(22, 50),
                 LocalTime.of(23, 26),
-                LocalTime.of(0, 20),
-                LocalTime.of(1, 0),
+                LocalTime.of(0, 56),
+                LocalTime.of(1, 16),
                 LocalTime.of(2, 0),
                 LocalTime.of(3, 0),
                 LocalTime.of(4, 0),
@@ -73,37 +77,36 @@ public class MessagePmHandler extends ListenerAdapter {
                 LocalTime.of(8, 0)
         };
 
-        List<String> amAnswers = answers.getPM_Answers();
-        while (true) {
-            for (int i = 0; i < sendTimes.length; i++) {
-                final int index = i;
-                LocalTime sendTime = sendTimes[i];
-                String message = amAnswers.get(i);
+        List<String> pmAnswers = answers.getPM_Answers();
 
-                // Создаем задачу для отправки сообщения
-                Runnable task = () -> {
-                    sendMessage(message);
-                    System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
-                };
+        Runnable task = () -> {
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")); // Текущее время в UTC
 
-                // Получаем текущее время
+            if (lastExecution == null || now.getDayOfWeek() != lastExecution.getDayOfWeek()) {
+                // Если это первый запуск или начался новый день, начинаем новый цикл
+                lastExecution = now;
                 LocalTime currentTime = LocalTime.now();
+                for (int i = 0; i < sendTimes.length; i++) {
+                    LocalTime sendTime = sendTimes[i];
+                    String message = pmAnswers.get(i);
 
-                // Если sendTime меньше или равно текущему времени, переносим на следующий день
-                if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
-                    sendTime = sendTime.plusHours(24);
+                    // Если sendTime меньше или равно текущему времени, переносим на следующий день
+                    if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
+                        sendTime = sendTime.plusHours(24);
+                    }
+
+                    long delayMillis = calculateDelay(currentTime, sendTime);
+
+                    // Планируем задачу
+                    scheduler.schedule(() -> sendMessage(message), delayMillis, TimeUnit.MILLISECONDS);
                 }
-
-                long delayMillis = calculateDelay(currentTime, sendTime);
-
-                // Планируем задачу
-                scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
+                System.out.println("All messages scheduled.");
             }
+        };
 
-            System.out.println("All messages scheduled.");
-        }
+        // Запускаем задачу для отправки сообщений
+        task.run();
     }
-
     private void sendMessage(String message) {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
