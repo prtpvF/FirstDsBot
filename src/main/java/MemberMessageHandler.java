@@ -33,12 +33,9 @@ public class MemberMessageHandler extends ListenerAdapter {
 
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
-                LocalTime.of(9, 0),  // Пример времени (12:00)
-                LocalTime.of(9, 25), // Пример времени (15:00)
-                // Добавьте дополнительные времена сюда
-                LocalTime.of(9, 55),  // Пример времени (09:00)
-                LocalTime.of(10, 55), // Пример времени (18:00)
-                LocalTime.of(11, 45),
+                LocalTime.of(8, 30),
+                LocalTime.of(15, 0),
+                LocalTime.of(23, 0),
         };
 
         List<String> memberAnswers = answers.getMEMBER_Answers();
