@@ -31,30 +31,6 @@ public class MessagePmHandler extends ListenerAdapter {
         this.guild = guild;
         this.scheduler = Executors.newScheduledThreadPool(1);
 
-
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            if (!isRunning) { // Проверяем, не запущен ли бот уже
-                startSendingMessages(event.getGuild());
-                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
-
-            }else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-                scheduler.shutdownNow();
-                isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-                event.getChannel().sendMessage("Бот остановлен.").queue();
-            }
-
-        }
-    }
-
-
-    private void startSendingMessages(Guild guild) {
-        System.out.println("Starting to send messages...");
-
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
                 LocalTime.of(19, 55), // Пример времени (12:00)
@@ -63,18 +39,19 @@ public class MessagePmHandler extends ListenerAdapter {
                 LocalTime.of(20, 55),  // Пример времени (09:00)
                 LocalTime.of(21, 5),  // Пример времени (18:00)
                 LocalTime.of(21, 45),
-                LocalTime.of(22, 15),
-                LocalTime.of(22, 50),
-                LocalTime.of(23, 26),
-                LocalTime.of(0, 56),
-                LocalTime.of(1, 16),
-                LocalTime.of(2, 0),
-                LocalTime.of(3, 0),
-                LocalTime.of(4, 0),
-                LocalTime.of(5, 0),
-                LocalTime.of(6, 0),
-                LocalTime.of(7, 0),
-                LocalTime.of(8, 0)
+                LocalTime.of(22,15),
+                LocalTime.of(22,50),
+                LocalTime.of(23,26),
+                LocalTime.of(0,20),
+                LocalTime.of(1,0),
+                LocalTime.of(2,0),
+                LocalTime.of(3,0),
+                LocalTime.of(4,0),
+                LocalTime.of(5,0),
+                LocalTime.of(6,0),
+                LocalTime.of(7,0),
+                LocalTime.of(8,0)
+
         };
 
         List<String> pmAnswers = answers.getPM_Answers();
@@ -107,6 +84,17 @@ public class MessagePmHandler extends ListenerAdapter {
         // Запускаем задачу для отправки сообщений
         task.run();
     }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+            scheduler.shutdownNow();
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
+        }
+    }
+
     private void sendMessage(String message) {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);

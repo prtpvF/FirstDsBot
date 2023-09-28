@@ -23,7 +23,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI")
+        JDA jda = JDABuilder.createDefault("token")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
@@ -46,7 +46,7 @@ public class Main  extends ListenerAdapter {
         // Добавляем обработчик реакций для этого сообщения
 
 
-        // Добавляем обработчик реакций для этого сообщения
+
         jda.addEventListener(new ReactionHandler(message));
         jda.addEventListener(new MessageLoHandler(jda,guild));
         jda.addEventListener(new MessageAmHandler(jda, guild));

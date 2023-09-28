@@ -16,47 +16,29 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MemberMessageHandler extends ListenerAdapter {
+
     private static final String ROLE_NAME = "member"; // Название роли
     private static ID all_id;
-    private Guild guild;
-    private boolean isRunning;
-    private ZonedDateTime lastExecution = null;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler;
     private Answers answers = new Answers();
+    boolean isRunning;
     private JDA jda;
+    private Guild guild;
+    private ZonedDateTime lastExecution = null;
 
     public MemberMessageHandler(JDA jda, Guild guild) {
         this.jda = jda;
         this.guild = guild;
-        // Запускаем отправку сообщений при создании объекта
-
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            if (!isRunning) { // Проверяем, не запущен ли бот уже
-                startSendingMessages(event.getGuild());
-                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
-
-            }
-        } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-            scheduler.shutdownNow();
-            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-            event.getChannel().sendMessage("Бот остановлен.").queue();
-        }
-    }
-
-
-    private void startSendingMessages(Guild guild) {
-        System.out.println("Starting to send messages...");
+        this.scheduler = Executors.newScheduledThreadPool(1);
 
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
-                LocalTime.of(8, 30),
-                LocalTime.of(15, 0),
-                LocalTime.of(23, 0),
+                LocalTime.of(9, 0),  // Пример времени (12:00)
+                LocalTime.of(9, 25), // Пример времени (15:00)
+                // Добавьте дополнительные времена сюда
+                LocalTime.of(9, 55),  // Пример времени (09:00)
+                LocalTime.of(10, 55), // Пример времени (18:00)
+                LocalTime.of(11, 45),
         };
 
         List<String> memberAnswers = answers.getMEMBER_Answers();
@@ -90,6 +72,15 @@ public class MemberMessageHandler extends ListenerAdapter {
         task.run();
     }
 
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+            scheduler.shutdownNow();
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
+        }
+    }
 
     private void sendMessage(String message) {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера

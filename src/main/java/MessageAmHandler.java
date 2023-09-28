@@ -16,49 +16,29 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MessageAmHandler extends ListenerAdapter {
+
     private static final String ROLE_NAME = "AM"; // Название роли
     private static ID all_id;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private JDA jda;
+    private final ScheduledExecutorService scheduler;
+    private Answers answers = new Answers();
     boolean isRunning;
+    private JDA jda;
     private Guild guild;
     private ZonedDateTime lastExecution = null;
-    Answers answers = new Answers();
 
     public MessageAmHandler(JDA jda, Guild guild) {
         this.jda = jda;
         this.guild = guild;
+        this.scheduler = Executors.newScheduledThreadPool(1);
 
-    }
-
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            if (!isRunning) { // Проверяем, не запущен ли бот уже
-                startSendingMessages(event.getGuild());
-                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
-
-            } else {
-                event.getChannel().sendMessage("Бот уже запущен.").queue();
-            }
-        } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-            scheduler.shutdownNow();
-            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-            event.getChannel().sendMessage("Бот остановлен.").queue();
-        }
-    }
-
-    private void startSendingMessages(Guild guild) {
-        System.out.println("Starting to send messages...");
+        // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
                 LocalTime.of(15, 20),
                 LocalTime.of(16, 45),
                 LocalTime.of(16, 55),
                 LocalTime.of(17, 45),
-                LocalTime.of(18, 45),
-                LocalTime.of(19, 0)
+                LocalTime.of(18,45),
+                LocalTime.of(19,0)
         };
 
         List<String> amAnswers = answers.getAM_Answers();
@@ -91,6 +71,17 @@ public class MessageAmHandler extends ListenerAdapter {
         // Запускаем задачу для отправки сообщений
         task.run();
     }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+            scheduler.shutdownNow();
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
+        }
+    }
+
     private void sendMessage(String message) {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
@@ -108,4 +99,3 @@ public class MessageAmHandler extends ListenerAdapter {
         return delayMillis;
     }
 }
-

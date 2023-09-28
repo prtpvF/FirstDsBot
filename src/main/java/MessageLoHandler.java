@@ -16,42 +16,20 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MessageLoHandler extends ListenerAdapter {
+
     private static final String ROLE_NAME = "LO"; // Название роли
     private static ID all_id;
-    boolean isRunning;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler;
     private Answers answers = new Answers();
-    private  Guild guild;
-    private ZonedDateTime lastExecution = null;
+    boolean isRunning;
     private JDA jda;
+    private Guild guild;
+    private ZonedDateTime lastExecution = null;
 
     public MessageLoHandler(JDA jda, Guild guild) {
         this.jda = jda;
         this.guild = guild;
-        // Запускаем отправку сообщений при создании объекта
-
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            if (!isRunning) { // Проверяем, не запущен ли бот уже
-                startSendingMessages(event.getGuild());
-                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
-                event.getChannel().sendMessage("Бот запущен.").queue();
-            } else {
-                event.getChannel().sendMessage("Бот уже запущен.").queue();
-            }
-        } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-            scheduler.shutdownNow();
-            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-            event.getChannel().sendMessage("Бот остановлен.").queue();
-        }
-    }
-
-    private void startSendingMessages(Guild guild) {
-        System.out.println("Starting to send messages...");
+        this.scheduler = Executors.newScheduledThreadPool(1);
 
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
@@ -94,12 +72,20 @@ public class MessageLoHandler extends ListenerAdapter {
         task.run();
     }
 
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+            scheduler.shutdownNow();
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
+        }
+    }
 
     private void sendMessage(String message) {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
         TextChannel channel = guild.getTextChannelById("1151906690233540778");
-
         if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
         }
