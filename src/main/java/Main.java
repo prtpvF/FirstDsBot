@@ -17,7 +17,7 @@ public class Main  extends ListenerAdapter {
     private static Message message;
     public static void main(String[] args) throws Exception {
 
-        String portStr = System.getenv("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI");
+        String portStr = System.getenv("PORT");
         int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
 
         // Создаем HTTP-сервер для "привязки" к порту
@@ -25,7 +25,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("token")
+        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
