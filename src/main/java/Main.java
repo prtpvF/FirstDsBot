@@ -17,7 +17,7 @@ public class Main  extends ListenerAdapter {
     private static Message message;
     public static void main(String[] args) throws Exception {
 
-        String portStr = System.getenv("PORT");
+        String portStr = System.getenv("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI");
         int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
 
         // Создаем HTTP-сервер для "привязки" к порту
