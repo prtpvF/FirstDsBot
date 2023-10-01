@@ -9,10 +9,12 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import ReactionHandler.ReactionHandler;
 
+import java.io.*;
 import java.net.InetSocketAddress;
 
 public class Main  extends ListenerAdapter {
-
+    private static final String WELCOME_FLAG_FILE = "welcome_sent.txt";
+    private static Message message;
     public static void main(String[] args) throws Exception {
 
         String portStr = System.getenv("PORT");
@@ -23,7 +25,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.GEZQI6.9wHqwsj4w8mtlWtrWi2_WXxB9SrMBPsYjr5HcI")
+        JDA jda = JDABuilder.createDefault("token")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
@@ -34,13 +36,16 @@ public class Main  extends ListenerAdapter {
         // Получаем текстовый канал, в котором вы хотите отправить сообщение
         TextChannel textChannel = jda.getCategories().get(1).getTextChannels().get(0);
 
-        // Отправляем сообщение и сохраняем его в переменной
-        Message message = textChannel.sendMessage("На сервер поселелился ОТТ бот." +'\n'
-                                                    +"он подскажет как лучше распределить торговое время." +'\n'
-                                                    + "чтобы он упоминал тебя когда ты за чартами, отреагируй на это сообщение: " +'\n'
-                                                    + "LO - если торгуешь Лондон" +'\n'
-                                                    + "AM - если торгуешь утро Нью-Йорка" +'\n'
-                                                    + "PM -  если мучаешь вечернюю Нью-Йоркскую сессию").complete();
+        boolean welcomeSent = checkWelcomeFlag();
+        if (!welcomeSent) {
+             message = textChannel.sendMessage("На сервер поселелился ОТТ бот." + '\n'
+                    + "он подскажет как лучше распределить торговое время." + '\n'
+                    + "чтобы он упоминал тебя когда ты за чартами, отреагируй на это сообщение: " + '\n'
+                    + "LO - если торгуешь Лондон" + '\n'
+                    + "AM - если торгуешь утро Нью-Йорка" + '\n'
+                    + "PM -  если мучаешь вечернюю Нью-Йоркскую сессию").complete();
+            setWelcomeFlag(true);
+        }
         Guild guild = jda.getGuildById("1147457730110558310");
 
         // Добавляем обработчик реакций для этого сообщения
@@ -54,6 +59,32 @@ public class Main  extends ListenerAdapter {
         jda.addEventListener(new MemberMessageHandler(jda, guild));
 
     }
+    public static boolean checkWelcomeFlag() {
+        try {
+            // Пытаемся прочитать значение флага из файла
+            BufferedReader reader = new BufferedReader(new FileReader(WELCOME_FLAG_FILE));
+            String flagValue = reader.readLine();
+            reader.close();
+
+            // Если значение равно "true", то флаг установлен
+            return "true".equals(flagValue);
+        } catch (IOException e) {
+            // Если произошла ошибка при чтении файла (например, файл не существует), считаем флаг сброшенным
+            return false;
+        }
+    }
+
+    public static void setWelcomeFlag(boolean value) {
+        try {
+            // Записываем значение флага в файл
+            BufferedWriter writer = new BufferedWriter(new FileWriter(WELCOME_FLAG_FILE));
+            writer.write(value ? "true" : "false");
+            writer.close();
+        } catch (IOException e) {
+            // Обработка ошибки записи в файл (по желанию)
+        }
+    }
+
 
 }
 
