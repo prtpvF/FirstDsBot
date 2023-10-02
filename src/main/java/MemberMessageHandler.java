@@ -8,46 +8,28 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MemberMessageHandler extends ListenerAdapter {
+
     private static final String ROLE_NAME = "member"; // Название роли
     private static ID all_id;
-    private Guild guild;
-    private boolean isRunning;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler;
     private Answers answers = new Answers();
+    boolean isRunning;
     private JDA jda;
+    private Guild guild;
+    private ZonedDateTime lastExecution = null;
 
     public MemberMessageHandler(JDA jda, Guild guild) {
         this.jda = jda;
         this.guild = guild;
-        // Запускаем отправку сообщений при создании объекта
-
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length == 1 && command[0].equalsIgnoreCase(".start")) {
-            if (!isRunning) { // Проверяем, не запущен ли бот уже
-                startSendingMessages(event.getGuild());
-                isRunning = true; // Устанавливаем флаг в true, чтобы указать, что бот запущен
-
-            }
-        } else if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
-            scheduler.shutdownNow();
-            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
-            event.getChannel().sendMessage("Бот остановлен.").queue();
-        }
-    }
-
-
-    private void startSendingMessages(Guild guild) {
-        System.out.println("Starting to send messages...");
+        this.scheduler = Executors.newScheduledThreadPool(1);
 
         // Задайте время, когда бот должен отправить сообщения
         LocalTime[] sendTimes = {
@@ -56,34 +38,45 @@ public class MemberMessageHandler extends ListenerAdapter {
                 LocalTime.of(23, 0),
         };
 
-        List<String> amAnswers = answers.getMEMBER_Answers();
+        List<String> memberAnswers = answers.getMEMBER_Answers();
 
-        for (int i = 0; i < sendTimes.length; i++) {
-            final int index = i;
-            LocalTime sendTime = sendTimes[i];
-            String message = amAnswers.get(i);
+        Runnable task = () -> {
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")); // Текущее время в UTC
 
-            // Создаем задачу для отправки сообщения
-            Runnable task = () -> {
-                sendMessage(message);
-                System.out.println("Scheduled message " + index + " sent at: " + LocalTime.now());
-            };
+            if (lastExecution == null || now.getDayOfWeek() != lastExecution.getDayOfWeek()) {
+                // Если это первый запуск или начался новый день, начинаем новый цикл
+                lastExecution = now;
+                LocalTime currentTime = LocalTime.now();
+                for (int i = 0; i < sendTimes.length; i++) {
+                    LocalTime sendTime = sendTimes[i];
+                    String message = memberAnswers.get(i);
 
-            // Получаем текущее время
-            LocalTime currentTime = LocalTime.now();
+                    // Если sendTime меньше или равно текущему времени, переносим на следующий день
+                    if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
+                        sendTime = sendTime.plusHours(24);
+                    }
 
-            // Если sendTime меньше или равно текущему времени, переносим на следующий день
-            if (sendTime.isBefore(currentTime) || sendTime.equals(currentTime)) {
-                sendTime = sendTime.plusHours(24);
+                    long delayMillis = calculateDelay(currentTime, sendTime);
+
+                    // Планируем задачу
+                    scheduler.schedule(() -> sendMessage(message), delayMillis, TimeUnit.MILLISECONDS);
+                }
+                System.out.println("All messages scheduled.");
             }
+        };
 
-            long delayMillis = calculateDelay(currentTime, sendTime);
+        // Запускаем задачу для отправки сообщений
+        task.run();
+    }
 
-            // Планируем задачу
-            scheduler.scheduleAtFixedRate(task, delayMillis, TimeUnit.HOURS.toMillis(24), TimeUnit.MILLISECONDS);
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
+            scheduler.shutdownNow();
+            isRunning = false; // Устанавливаем флаг в false, чтобы указать, что бот остановлен
+            event.getChannel().sendMessage("Бот остановлен.").queue();
         }
-
-        System.out.println("All messages scheduled.");
     }
 
     private void sendMessage(String message) {
