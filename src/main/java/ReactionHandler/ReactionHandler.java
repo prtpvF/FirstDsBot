@@ -15,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ReactionHandler extends ListenerAdapter {
-    private final Message message;
+    private Message message;
     private List<Role> addedRoles = new ArrayList<>();
     private List<Role> removedRoles = new ArrayList<>();
     private ScheduledExecutorService executorService;
@@ -26,6 +26,25 @@ public class ReactionHandler extends ListenerAdapter {
         this.message = message;
     }
 
+    @Override
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        String[] command = event.getMessage().getContentRaw().split(" ");
+        if (command.length > 0 && command[0].equalsIgnoreCase(".start") && !isStarted) {
+            sendMessageAndAddReactions((TextChannel) event.getChannel());
+            isStarted = true;
+        }
+    }
+
+    private void sendMessageAndAddReactions(TextChannel channel) {
+        // Отправляем сообщение и добавляем реакции
+        message = channel.sendMessage("На сервер поселился ОТТ бот." + '\n'
+                + "Он подскажет как лучше распределить торговое время." + '\n'
+                + "Чтобы он упоминал тебя когда ты за чартами, отреагируй на это сообщение: " + '\n'
+                + "LO - если торгуешь Лондон" + '\n'
+                + "AM - если торгуешь утро Нью-Йорка" + '\n'
+                + "PM -  если мучаешь вечернюю Нью-Йоркскую сессию").complete();
+
+    }
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
 
