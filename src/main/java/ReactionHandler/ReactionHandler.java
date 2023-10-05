@@ -1,5 +1,6 @@
 package ReactionHandler;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -7,106 +8,149 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 public class ReactionHandler extends ListenerAdapter {
     private Message message;
+    private Map<Long, Message> adminMessages = new HashMap<>();
     private List<Role> addedRoles = new ArrayList<>();
     private List<Role> removedRoles = new ArrayList<>();
-    private ScheduledExecutorService executorService;
     private boolean isStarted = false;
 
+    private long adminMessageId = -1;
 
     public ReactionHandler(Message message) {
         this.message = message;
+        loadAdminMessageId();
     }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ");
-        if (command.length > 0 && command[0].equalsIgnoreCase(".start") && !isStarted) {
-            sendMessageAndAddReactions((TextChannel) event.getChannel());
-            isStarted = true;
+        if (command.length > 0 && command[0].equalsIgnoreCase(".message")) {
+            if (isAdmin(event.getMember())) {
+                if (command.length > 1) {
+                    String adminMessage = String.join(" ", command).substring(".message".length()).trim();
+                    Message message = event.getChannel().sendMessage(adminMessage).complete();
+                    adminMessages.put(message.getIdLong(), message);
+                    setAdminMessageId(message.getIdLong()); // Сохраняем ID админского сообщения
+                } else {
+                    event.getChannel().sendMessage("Пожалуйста, укажите сообщение после команды `.message`.").queue();
+                }
+            } else {
+                event.getChannel().sendMessage("У вас нет прав на использование этой команды.").queue();
+            }
         }
     }
 
-    private void sendMessageAndAddReactions(TextChannel channel) {
-        // Отправляем сообщение и добавляем реакции
-        message = channel.sendMessage("На сервер поселился ОТТ бот." + '\n'
-                + "Он подскажет как лучше распределить торговое время." + '\n'
-                + "Чтобы он упоминал тебя когда ты за чартами, отреагируй на это сообщение: " + '\n'
-                + "LO - если торгуешь Лондон" + '\n'
-                + "AM - если торгуешь утро Нью-Йорка" + '\n'
-                + "PM -  если мучаешь вечернюю Нью-Йоркскую сессию").complete();
-
-    }
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-
-        // Проверяем, что реакция добавлена к нужному сообщению
-        if (event.getMessageIdLong() == message.getIdLong()) {
-            // Получаем имя (или Unicode-символ) эмодзи, на которое пользователь нажал
+        long adminMessageId = getAdminMessageIdFromTextFile(); // Получаем ID админского сообщения из текстового файла
+        if (event.getMessageIdLong() == adminMessageId) {
             String emojiName = event.getReactionEmote().getName();
-
-            // Получаем объект пользователя
             Member member = event.getMember();
-
-            // Получаем объект сервера
             Guild guild = event.getGuild();
 
-            // Сравниваем имя эмодзи с ожидаемыми значениями и добавляем роли
             if (emojiName.equals("pm")) {
-                // Добавляем роль "если торгуешь утром Гью-Йорка"
                 Role role = guild.getRolesByName("PM", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             } else if (emojiName.equals("lo")) {
-                // Добавляем роль "если торгуешь лондон"
                 Role role = guild.getRolesByName("LO", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             } else if (emojiName.equals("am")) {
-                // Добавляем роль "если мучаешь вечернюю Нью-Йоркскую сессию"
-
                 Role role = guild.getRolesByName("AM", true).get(0);
                 guild.addRoleToMember(member, role).queue();
             }
         }
-
     }
 
     @Override
     public void onMessageReactionRemove(MessageReactionRemoveEvent event) {
-        // Проверяем, что реакция была удалена из нужного сообщения
-        if (event.getMessageIdLong() == message.getIdLong()) {
-            // Получаем имя (или Unicode-символ) удаленной реакции
+        long adminMessageId = getAdminMessageIdFromTextFile(); // Получаем ID админского сообщения из текстового файла
+        if (event.getMessageIdLong() == adminMessageId) {
             String emojiName = event.getReactionEmote().getName();
-
-            // Получаем ID пользователя
             long userId = event.getUserIdLong();
-
-            // Получаем объект сервера
             Guild guild = event.getGuild();
 
-            // Сравниваем имя удаленной реакции с ожидаемыми значениями и удаляем соответствующие роли
             if (emojiName.equals("pm")) {
-                // Удаляем роль "если торгуешь утром Гью-Йорка"
                 Role role = guild.getRolesByName("PM", true).get(0);
                 guild.removeRoleFromMember(userId, role).queue();
             } else if (emojiName.equals("lo")) {
-                // Удаляем роль "если торгуешь лондон"
                 Role role = guild.getRolesByName("LO", true).get(0);
                 guild.removeRoleFromMember(userId, role).queue();
             } else if (emojiName.equals("am")) {
-                // Удаляем роль "если мучаешь вечернюю Нью-Йоркскую сессию"
                 Role role = guild.getRolesByName("AM", true).get(0);
                 guild.removeRoleFromMember(userId, role).queue();
             }
         }
     }
-
+    private long getAdminMessageIdFromTextFile() {
+        try {
+            File file = new File("adminMessageId.txt");
+            if (!file.exists()) {
+                file.createNewFile();
+                // Здесь можно задать начальное значение ID, если файла не существовало
+                // saveAdminMessageIdToFile(STARTING_ADMIN_MESSAGE_ID);
+            }
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = reader.readLine();
+            if (line != null) {
+                return Long.parseLong(line);
+            }
+            reader.close();
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return 0; // Возвращаем 0 в случае ошибки
     }
 
+
+    private boolean isAdmin(Member member) {
+        if (member == null) {
+            return false;
+        }
+        return member.hasPermission(Permission.ADMINISTRATOR);
+    }
+
+    private void loadAdminMessageId() {
+        try {
+            File file = new File("adminMessageId.txt");
+            if (!file.exists()) {
+                file.createNewFile();
+                saveAdminMessageId(); // Сохраняем начальное значение в новом файле
+            }
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line = reader.readLine();
+            if (line != null) {
+                adminMessageId = Long.parseLong(line);
+            }
+            reader.close();
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    private void saveAdminMessageId() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("adminMessageId.txt"))) {
+            writer.write(String.valueOf(adminMessageId));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getAdminMessageId() {
+        return adminMessageId;
+    }
+
+    private void setAdminMessageId(long adminMessageId) {
+        this.adminMessageId = adminMessageId;
+        saveAdminMessageId();
+    }
+}
