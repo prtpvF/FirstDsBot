@@ -11,10 +11,12 @@ import ReactionHandler.ReactionHandler;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main  extends ListenerAdapter {
 
     private static Message message;
+
     public static void main(String[] args) throws Exception {
 
         String portStr = System.getenv("PORT");
@@ -25,7 +27,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("token")
+        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.Ge_wMF.xOiXd_oksQkW2HgvbjSzWjb4TXkRF2N-ptr7qc")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
@@ -41,20 +43,89 @@ public class Main  extends ListenerAdapter {
 
         // Добавляем обработчик реакций для этого сообщения
 
+        MessageHandler messageHandler = new MessageHandler();
+        RoleHandler roleHandler = new RoleHandler();
+        ReactionHandler reactionHandler = new ReactionHandler(message);
+        MessageLoHandler messageLoHandler = new MessageLoHandler(jda, guild);
+        MessageAmHandler messageAmHandler = new MessageAmHandler(jda, guild);
+        MessagePmHandler messagePmHandler = new MessagePmHandler(jda, guild);
+        MemberMessageHandler memberMessageHandler = new MemberMessageHandler(jda, guild);
+        ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda,guild);
+        AtomicBoolean terminateThreads = new AtomicBoolean(false); // Флаг для завершения потоков
+
+        Thread messageHandlerThread = new Thread(() -> {
+            jda.addEventListener(messageHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для messageHandler
+            }
+            jda.removeEventListener(messageHandler);
+        });
+
+        Thread scheludeMessageThread = new Thread(() -> {
+            jda.addEventListener(scheduledMessageSender);
+            while (!terminateThreads.get()) {
+                // Ваша логика для messageHandler
+            }
+            jda.removeEventListener(scheduledMessageSender);
+        });
+
+        Thread roleHandlerThread = new Thread(() -> {
+            jda.addEventListener(roleHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(roleHandler);
+        });
+
+        Thread reactionHandlerThread = new Thread(() -> {
+            jda.addEventListener(reactionHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(roleHandler);
+        });
+
+        Thread LOHandlerThread = new Thread(() -> {
+            jda.addEventListener(messageLoHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(messageLoHandler);
+        });
+        Thread PmHandlerThread = new Thread(() -> {
+            jda.addEventListener(messagePmHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(messagePmHandler);
+        });
+        Thread AMHandlerThread = new Thread(() -> {
+            jda.addEventListener(messageAmHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(messageAmHandler);
+        });
+        Thread MemberHandlerThread = new Thread(() -> {
+            jda.addEventListener(memberMessageHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(memberMessageHandler);
+        });
+
+        // Добавьте аналогичные потоки и обработчики для других событий
+
+        messageHandlerThread.start();
+        roleHandlerThread.start();
+        reactionHandlerThread.start();
+//        LOHandlerThread.start();
+//        PmHandlerThread.start();
+//        AMHandlerThread.start();
+//        MemberHandlerThread.start();
 
 
-        jda.addEventListener(new ReactionHandler(message));
-        jda.addEventListener(new MessageLoHandler(jda,guild));
-        jda.addEventListener(new MessageAmHandler(jda, guild));
-        jda.addEventListener(new MessagePmHandler(jda, guild));
-        jda.addEventListener(new MemberMessageHandler(jda, guild));
+        // Ожидание завершения всех потоков
 
     }
-
-
-
-
-
-
 }
-

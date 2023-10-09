@@ -54,6 +54,9 @@ public class ReactionHandler extends ListenerAdapter {
             String emojiName = event.getReactionEmote().getName();
             Member member = event.getMember();
             Guild guild = event.getGuild();
+            String name = emojiName.toUpperCase();
+            Role currentRole=guild.getRolesByName(name, true).get(0);
+            guild.addRoleToMember(member, currentRole).queue();
 
             if (emojiName.equals("pm")) {
                 Role role = guild.getRolesByName("PM", true).get(0);
@@ -75,7 +78,9 @@ public class ReactionHandler extends ListenerAdapter {
             String emojiName = event.getReactionEmote().getName();
             long userId = event.getUserIdLong();
             Guild guild = event.getGuild();
-
+            String name = emojiName.toUpperCase();
+            Role currentRole=guild.getRolesByName(name, true).get(0);
+            guild.removeRoleFromMember(userId, currentRole).queue();
             if (emojiName.equals("pm")) {
                 Role role = guild.getRolesByName("PM", true).get(0);
                 guild.removeRoleFromMember(userId, role).queue();
