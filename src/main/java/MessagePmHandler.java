@@ -7,9 +7,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,6 +23,14 @@ public class MessagePmHandler extends ListenerAdapter {
     private JDA jda;
     private Guild guild;
     private ZonedDateTime lastExecution = null;
+    private  LocalTime[] sendTimes = {
+            LocalTime.of(19, 55), // Пример времени (12:00)
+            LocalTime.of(20, 5),  // Пример времени (15:00)
+            // Добавьте дополнительные времена сюда
+            LocalTime.of(20, 55),  // Пример времени (09:00)
+            LocalTime.of(21, 5),  // Пример времени (18:00)
+            LocalTime.of(21, 45)
+    };
 
     public MessagePmHandler(JDA jda, Guild guild) {
         this.jda = jda;
@@ -32,27 +38,7 @@ public class MessagePmHandler extends ListenerAdapter {
         this.scheduler = Executors.newScheduledThreadPool(1);
 
         // Задайте время, когда бот должен отправить сообщения
-        LocalTime[] sendTimes = {
-                LocalTime.of(19, 55), // Пример времени (12:00)
-                LocalTime.of(20, 5),  // Пример времени (15:00)
-                // Добавьте дополнительные времена сюда
-                LocalTime.of(20, 55),  // Пример времени (09:00)
-                LocalTime.of(21, 5),  // Пример времени (18:00)
-                LocalTime.of(21, 45),
-                LocalTime.of(22,15),
-                LocalTime.of(22,50),
-                LocalTime.of(23,26),
-                LocalTime.of(0,20),
-                LocalTime.of(1,0),
-                LocalTime.of(2,0),
-                LocalTime.of(3,0),
-                LocalTime.of(4,0),
-                LocalTime.of(5,0),
-                LocalTime.of(6,0),
-                LocalTime.of(7,0),
-                LocalTime.of(8,0)
 
-        };
 
         List<String> pmAnswers = answers.getPM_Answers();
 
@@ -87,6 +73,7 @@ public class MessagePmHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+
         String[] command = event.getMessage().getContentRaw().split(" ");
         if (command.length == 1 && command[0].equalsIgnoreCase(".stop")) {
             scheduler.shutdownNow();
@@ -99,7 +86,14 @@ public class MessagePmHandler extends ListenerAdapter {
         Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
         TextChannel channel = guild.getTextChannelById("1151906690233540778");
-        if (channel != null) {
+        DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
+
+        // Проверьте, если текущий день суббота или воскресенье
+        if(currentDayOfWeek != DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.TUESDAY){
+            channel.sendMessage(" ");
+            System.out.println("понедельник/вторник, сообщение не будет оптравлено");
+        }
+        else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
         }
     }
