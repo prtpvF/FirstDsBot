@@ -89,7 +89,7 @@ public class MessagePmHandler extends ListenerAdapter {
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье
-        if(currentDayOfWeek != DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.TUESDAY){
+        if(currentDayOfWeek == DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.WEDNESDAY){
             channel.sendMessage(" ");
             System.out.println("понедельник/вторник, сообщение не будет оптравлено");
         }
