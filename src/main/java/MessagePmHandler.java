@@ -95,6 +95,8 @@ public class MessagePmHandler extends ListenerAdapter {
         }
         else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
+            LocalTime time = LocalTime.now();
+            System.out.println("сообщение для PM Отправленно, время отправки " + time);
         }
     }
 

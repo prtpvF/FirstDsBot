@@ -82,12 +82,14 @@ public class ScheduledMessageSender extends ListenerAdapter {
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье
-        if(currentDayOfWeek == DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.WEDNESDAY){
+        if(currentDayOfWeek == DayOfWeek.MONDAY || currentDayOfWeek == DayOfWeek.WEDNESDAY){
             channel.sendMessage(" ");
             System.out.println("понедельник/вторник, сообщение не будет оптравлено");
         }
        else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + messageContent).queue();
+            LocalTime time = LocalTime.now();
+            System.out.println("сообщение для Роли из файла Отправленно, время отправки " + time);
         }
     }
 
