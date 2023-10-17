@@ -1,8 +1,13 @@
 package Util;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class Answers {
     List<String> LO_Answers = new ArrayList<>();
 
@@ -15,12 +20,12 @@ public class Answers {
     }
     List<String> AM_Answers = new ArrayList<>();
     {
-        AM_Answers.add("'-через 10 минут открытие NY, ждём манипуляцию, после которой ищем позы'");
-        AM_Answers.add("'-через 5 минут начнется макрос **9:50-10:10 (utc-4)** - ребалансировка/доставка'");
-        AM_Answers.add("'-через 5 минут **SILVER BULLET time **10:00-11:00 (utc-4)**'");
-        AM_Answers.add("'-через 5 минут начнется макрос **10:50-11:10 (utc-4)** - доставка/ребалансировка'");
-        AM_Answers.add("'-через 5 минут начнется макрос **11:50-12:10 (utc-4)** - доставка/ребалансировка'");
-        AM_Answers.add("'-ланч! закрывай или обезопась позы и отдохни'");
+        AM_Answers.add("-через 10 минут открытие NY, ждём манипуляцию, после которой ищем позы");
+        AM_Answers.add("-через 5 минут начнется макрос **9:50-10:10 (utc-4)** - ребалансировка/доставка");
+        AM_Answers.add("-через 5 минут **SILVER BULLET time **10:00-11:00 (utc-4)**'");
+        AM_Answers.add("-через 5 минут начнется макрос **10:50-11:10 (utc-4)** - доставка/ребалансировка");
+        AM_Answers.add("-через 5 минут начнется макрос **11:50-12:10 (utc-4)** - доставка/ребалансировка");
+        AM_Answers.add("-ланч! закрывай или обезопась позы и отдохни'");
     }
     List<String> PM_Answers = new ArrayList<>();
     {
@@ -54,5 +59,21 @@ public class Answers {
 
     public List<String> getMEMBER_Answers() {
         return MEMBER_Answers;
+    }
+
+    public void setLO_Answers(List<String> LO_Answers) {
+        this.LO_Answers = LO_Answers;
+    }
+
+    public void setAM_Answers(List<String> AM_Answers) {
+        this.AM_Answers = AM_Answers;
+    }
+
+    public void setPM_Answers(List<String> PM_Answers) {
+        this.PM_Answers = PM_Answers;
+    }
+
+    public void setMEMBER_Answers(List<String> MEMBER_Answers) {
+        this.MEMBER_Answers = MEMBER_Answers;
     }
 }

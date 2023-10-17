@@ -29,7 +29,7 @@ public class MessageAmHandler extends ListenerAdapter {
             LocalTime.of(16, 55),
             LocalTime.of(17, 45),
             LocalTime.of(18,45),
-            LocalTime.of(19,0)
+            LocalTime.of(19,47)
     };
 
     public MessageAmHandler(JDA jda, Guild guild) {
@@ -89,12 +89,14 @@ public class MessageAmHandler extends ListenerAdapter {
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье
-        if(currentDayOfWeek != DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.TUESDAY){
-            channel.sendMessage(" ");
-            System.out.println("понедельник/вторник, сообщение не будет оптравлено");
-        }
-        else if (channel != null) {
+        if(currentDayOfWeek == DayOfWeek.MONDAY | currentDayOfWeek == DayOfWeek.TUESDAY){
+           channel.sendMessage(" ");
+           System.out.println("понедельник/вторник, сообщение не будет оптравлено");
+      }
+         else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
+            LocalTime time = LocalTime.now();
+            System.out.println("сообщение для AM Отправленно, время отправки " + time);
         }
     }
 

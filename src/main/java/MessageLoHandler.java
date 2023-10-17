@@ -96,12 +96,14 @@ public class MessageLoHandler extends ListenerAdapter {
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье
-        if(currentDayOfWeek != DayOfWeek.MONDAY || currentDayOfWeek != DayOfWeek.TUESDAY){
+        if(currentDayOfWeek == DayOfWeek.MONDAY | currentDayOfWeek == DayOfWeek.TUESDAY){
             channel.sendMessage(" ");
             System.out.println("понедельник/вторник, сообщение не будет оптравлено");
         }
         else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();
+            LocalTime time = LocalTime.now();
+            System.out.println("сообщение для LO Отправленно, время отправки " + time);
         }
     }
 
