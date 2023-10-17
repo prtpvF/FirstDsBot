@@ -21,9 +21,7 @@ public class MessageHandler extends ListenerAdapter {
         roleMessagesMap = loadMessagesFromFile();
     }
 
-    @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        System.out.println("вызван");
         String messageContent = event.getMessage().getContentRaw();
 
         if (messageContent.startsWith(".addMessage ")) {
@@ -35,12 +33,20 @@ public class MessageHandler extends ListenerAdapter {
 
                 // Преобразуем имя роли в верхний регистр для унификации
                 roleName = roleName.toUpperCase();
+                Guild guild = event.getGuild();
 
-                // Вызываем MessageStorage для добавления сообщения с временем в отдельном потоке
-                String finalRoleName = roleName;
-                executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
+                // Проверяем, существует ли роль с указанным именем
+                Role role = guild.getRolesByName(roleName, true).stream().findFirst().orElse(null);
 
-                event.getChannel().sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                if (role != null) {
+                    // Роль существует, добавляем сообщение
+                    String finalRoleName = roleName;
+                    executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
+
+                    event.getChannel().sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                } else {
+                    event.getChannel().sendMessage("Такой роли не существует!").queue();
+                }
             } else {
                 event.getChannel().sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
             }
