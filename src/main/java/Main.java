@@ -27,7 +27,7 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.Ge_wMF.xOiXd_oksQkW2HgvbjSzWjb4TXkRF2N-ptr7qc")
+        JDA jda = JDABuilder.createDefault("TOKEN")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
                 .setActivity(Activity.playing("Fight with shadow"))
