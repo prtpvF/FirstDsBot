@@ -83,15 +83,15 @@ public class MessagePmHandler extends ListenerAdapter {
     }
 
     private void sendMessage(String message) {
-        Guild guild = jda.getGuildById("1147457730110558310"); // Замените на ID вашего сервера
+        Guild guild = jda.getGuildById("1048308477803647056"); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
-        TextChannel channel = guild.getTextChannelById("1151906690233540778");
+        TextChannel channel = guild.getTextChannelById("1164480394658332744");
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье
-        if(currentDayOfWeek == DayOfWeek.MONDAY | currentDayOfWeek != DayOfWeek.WEDNESDAY){
+        if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){
             channel.sendMessage(" ");
-            System.out.println("понедельник/вторник, сообщение не будет оптравлено");
+            System.out.println("суббота/воскресенье, сообщение не будет оптравлено");
         }
         else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + message).queue();

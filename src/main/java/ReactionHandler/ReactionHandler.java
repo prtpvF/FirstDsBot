@@ -21,6 +21,7 @@ public class ReactionHandler extends ListenerAdapter {
     private List<Role> removedRoles = new ArrayList<>();
     private boolean isStarted = false;
 
+
     private long adminMessageId = -1;
 
     public ReactionHandler(Message message) {
@@ -30,19 +31,21 @@ public class ReactionHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        String channelID = "1164480394658332744";
+        TextChannel channel = event.getJDA().getTextChannelById(channelID);
         String[] command = event.getMessage().getContentRaw().split(" ");
         if (command.length > 0 && command[0].equalsIgnoreCase(".message")) {
             if (isAdmin(event.getMember())) {
                 if (command.length > 1) {
                     String adminMessage = String.join(" ", command).substring(".message".length()).trim();
-                    Message message = event.getChannel().sendMessage(adminMessage).complete();
+                    Message message = channel.sendMessage(adminMessage).complete();
                     adminMessages.put(message.getIdLong(), message);
                     setAdminMessageId(message.getIdLong()); // Сохраняем ID админского сообщения
                 } else {
-                    event.getChannel().sendMessage("Пожалуйста, укажите сообщение после команды `.message`.").queue();
+                    channel.sendMessage("Пожалуйста, укажите сообщение после команды `.message`.").queue();
                 }
             } else {
-                event.getChannel().sendMessage("У вас нет прав на использование этой команды.").queue();
+                channel.sendMessage("У вас нет прав на использование этой команды.").queue();
             }
         }
     }

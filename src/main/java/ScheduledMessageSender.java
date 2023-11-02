@@ -85,10 +85,13 @@ public class ScheduledMessageSender extends ListenerAdapter {
     }
 
     void sendMessage(Role role, String messageContent) {
-        TextChannel channel = guild.getTextChannelById("1151906690233540778");
+        TextChannel channel = guild.getTextChannelById("1164480394658332744");
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
-
-        if (channel != null) {
+        if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){
+            channel.sendMessage(" ");
+            System.out.println("суббота/воскресенье, сообщение не будет оптравлено");
+        }
+        else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + messageContent).queue();
             LocalTime time = LocalTime.now();
             System.out.println("сообщение для Роли из файла отправлено, время отправки " + time);

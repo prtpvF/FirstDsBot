@@ -1,4 +1,5 @@
 Main.class
+ScheduledMessageSender.class
 MessageHandler.class
 RoleHandler.class
 Util\Answers.class

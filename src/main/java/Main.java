@@ -11,6 +11,9 @@ import ReactionHandler.ReactionHandler;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main  extends ListenerAdapter {
@@ -18,7 +21,8 @@ public class Main  extends ListenerAdapter {
     private static Message message;
 
     public static void main(String[] args) throws Exception {
-
+        String token="";
+        String guildId="";
         String portStr = System.getenv("PORT");
         int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
 
@@ -27,23 +31,41 @@ public class Main  extends ListenerAdapter {
 
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
         server.start();
-        JDA jda = JDABuilder.createDefault("MTE1MTI0ODM2ODQ1NTEzMTE2Ng.Ge_wMF.xOiXd_oksQkW2HgvbjSzWjb4TXkRF2N-ptr7qc")
-                .enableIntents(GatewayIntent.GUILD_MESSAGES) // Для сообщений в серверных чатах
 
+        try(FileReader reader= new FileReader("storage.txt")){
+            List<String> allId = new ArrayList<>();
+            int c;
+            while((c=reader.read())!=' '){
+                token=token + (char)c;
+            }
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+        System.out.println("Токен: " + token);
+        try (BufferedReader br = new BufferedReader(new FileReader("storage.txt"))) {
+            // пропускаем первую строку
+            br.readLine();
+            // считываем вторую строку
+             guildId = br.readLine();
+            String[] patterns = guildId.split("-");
+            guildId = patterns[0];
+            System.out.println("ID сервера: " + guildId);
+        } catch (IOException e) {
+            System.err.println("Ошибка при чтении файла " + "storage.txt" + ": " + e.getMessage());
+        }
+
+
+
+        JDA jda = JDABuilder.createDefault(token)
+                .enableIntents(GatewayIntent.GUILD_MESSAGES,GatewayIntent.GUILD_MEMBERS)
                 .setActivity(Activity.playing("Fight with shadow"))
                 .build();
 
         jda.awaitReady();
 
-        // Получаем текстовый канал, в котором вы хотите отправить сообщение
-        TextChannel textChannel = jda.getCategories().get(1).getTextChannels().get(0);
+        Guild guild = jda.getGuildById(guildId);
 
-
-        Guild guild = jda.getGuildById("1147457730110558310");
-
-        // Добавляем обработчик реакций для этого сообщения
-
-        MessageHandler messageHandler = new MessageHandler();
+        MessageHandler messageHandler = new MessageHandler(jda);
         RoleHandler roleHandler = new RoleHandler();
         ReactionHandler reactionHandler = new ReactionHandler(message);
         MessageLoHandler messageLoHandler = new MessageLoHandler(jda, guild);

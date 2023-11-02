@@ -1,6 +1,8 @@
 import Util.Answers;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -13,15 +15,19 @@ import java.util.concurrent.Executors;
 
 public class MessageHandler extends ListenerAdapter {
     private String storageFile = "messageStorage.txt";
+    private JDA jda;
     private Map<String, List<String>> roleMessagesMap;
     private final Object fileLock = new Object();
     private ExecutorService executor = Executors.newFixedThreadPool(1); // Один поток для выполнения команд
 
-    public MessageHandler() {
+
+    public MessageHandler(JDA jda) {
+        this.jda =jda;
         roleMessagesMap = loadMessagesFromFile();
     }
 
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
         String messageContent = event.getMessage().getContentRaw();
 
         if (messageContent.startsWith(".addMessage ")) {
@@ -33,7 +39,9 @@ public class MessageHandler extends ListenerAdapter {
 
                 // Преобразуем имя роли в верхний регистр для унификации
                 roleName = roleName.toUpperCase();
-                Guild guild = event.getGuild();
+                Guild guild = jda.getGuildById("1048308477803647056");
+                TextChannel sendMessageTextChannel = guild.getTextChannelById("1059855551124746282");
+
 
                 // Проверяем, существует ли роль с указанным именем
                 Role role = guild.getRolesByName(roleName, true).stream().findFirst().orElse(null);
@@ -43,13 +51,20 @@ public class MessageHandler extends ListenerAdapter {
                     String finalRoleName = roleName;
                     executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
 
-                    event.getChannel().sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                    sendMessageTextChannel.sendMessage("Сообщение добавлено для роли " + roleName).queue();
                 } else {
-                    event.getChannel().sendMessage("Такой роли не существует!").queue();
+                   sendMessageTextChannel.sendMessage("Такой роли не существует!").queue();
                 }
             } else {
-                event.getChannel().sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
+                Guild guild = event.getGuild();
+                TextChannel textChannel = guild.getTextChannelById("1059855551124746282");
+              textChannel.sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
             }
+        }
+        else {
+            Guild guild = event.getGuild();
+            TextChannel textChannel = guild.getTextChannelById("1059855551124746282");
+           textChannel.sendMessage("сообщение пустое");
         }
     }
 
