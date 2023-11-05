@@ -1,3 +1,4 @@
+import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -17,6 +18,7 @@ public class ScheduledMessageSender extends ListenerAdapter {
     private ScheduledExecutorService scheduler;
     private JDA jda;
     private Guild guild;
+
 
     public ScheduledMessageSender(JDA jda, Guild guild) {
         this.jda = jda;
@@ -85,7 +87,9 @@ public class ScheduledMessageSender extends ListenerAdapter {
     }
 
     void sendMessage(Role role, String messageContent) {
-        TextChannel channel = guild.getTextChannelById("1164480394658332744");
+        CustomFileReader reader = new CustomFileReader();
+        String channelId = reader.GetId(3);
+        TextChannel channel = guild.getTextChannelById(channelId);
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
         if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){
             channel.sendMessage(" ");

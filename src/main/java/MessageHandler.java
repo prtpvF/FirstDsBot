@@ -1,4 +1,5 @@
 import Util.Answers;
+import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -39,8 +40,11 @@ public class MessageHandler extends ListenerAdapter {
 
                 // Преобразуем имя роли в верхний регистр для унификации
                 roleName = roleName.toUpperCase();
-                Guild guild = jda.getGuildById("1048308477803647056");
-                TextChannel sendMessageTextChannel = guild.getTextChannelById("1059855551124746282");
+                CustomFileReader reader = new CustomFileReader();
+                String guildlId = reader.GetId(1);
+                Guild guild = jda.getGuildById(guildlId);
+                String channelId = reader.GetId(2);
+                TextChannel sendMessageTextChannel = guild.getTextChannelById(channelId);
 
 
                 // Проверяем, существует ли роль с указанным именем
@@ -57,13 +61,17 @@ public class MessageHandler extends ListenerAdapter {
                 }
             } else {
                 Guild guild = event.getGuild();
-                TextChannel textChannel = guild.getTextChannelById("1059855551124746282");
+                CustomFileReader reader = new CustomFileReader();
+                String adminChannelId = reader.GetId(2);
+                TextChannel textChannel = guild.getTextChannelById(adminChannelId);
               textChannel.sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
             }
         }
         else {
             Guild guild = event.getGuild();
-            TextChannel textChannel = guild.getTextChannelById("1059855551124746282");
+            CustomFileReader reader = new CustomFileReader();
+            String adminChannelId = reader.GetId(2);
+            TextChannel textChannel = guild.getTextChannelById(adminChannelId);
            textChannel.sendMessage("сообщение пустое");
         }
     }

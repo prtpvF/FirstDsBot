@@ -1,4 +1,5 @@
 import Util.Answers;
+import Util.CustomFileReader;
 import Util.ID;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -106,9 +107,10 @@ public class MemberMessageHandler extends ListenerAdapter {
     }
 
     private void sendMessage(String message) {
-        Guild guild = jda.getGuildById("1048308477803647056"); // Замените на ID вашего сервера
+        CustomFileReader reader = new CustomFileReader();
+        Guild guild = jda.getGuildById(reader.getGuildId()); // Замените на ID вашего сервера
         Role role = guild.getRolesByName(ROLE_NAME, true).get(0);
-        TextChannel channel = guild.getTextChannelById("1164480394658332744");
+        TextChannel channel = guild.getTextChannelById(reader.GetId(3));
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
         // Проверьте, если текущий день суббота или воскресенье

@@ -1,70 +1,42 @@
-import Util.ID;
+import Util.CustomFileReader;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.tools.javac.Main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import ReactionHandler.ReactionHandler;
 
-import java.io.*;
+import javax.security.auth.login.LoginException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Main  extends ListenerAdapter {
+public class Bot extends ListenerAdapter {
+    private static Message  message;
+    private JDA jda;
+    public void stopBot() {
+        jda.shutdownNow();
 
-    private static Message message;
+    }
 
-    public static void main(String[] args) throws Exception {
-        String token="";
-        String guildId="";
-        String portStr = System.getenv("PORT");
-        int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
-
-        // Создаем HTTP-сервер для "привязки" к порту
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
-        // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
-        server.start();
-
-        try(FileReader reader= new FileReader("storage.txt")){
-            List<String> allId = new ArrayList<>();
-            int c;
-            while((c=reader.read())!=' '){
-                token=token + (char)c;
-            }
-        }catch (IOException e){
-            System.out.println(e.getMessage());
-        }
-        System.out.println("Токен: " + token);
-        try (BufferedReader br = new BufferedReader(new FileReader("storage.txt"))) {
-            // пропускаем первую строку
-            br.readLine();
-            // считываем вторую строку
-             guildId = br.readLine();
-            String[] patterns = guildId.split("-");
-            guildId = patterns[0];
-            System.out.println("ID сервера: " + guildId);
-        } catch (IOException e) {
-            System.err.println("Ошибка при чтении файла " + "storage.txt" + ": " + e.getMessage());
-        }
+    public void startBotWithNewToken(String token) throws InterruptedException, LoginException {
 
 
 
-        JDA jda = JDABuilder.createDefault(token)
+
+
+
+         jda = JDABuilder.createDefault(token)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES,GatewayIntent.GUILD_MEMBERS)
-                .setActivity(Activity.playing("Fight with shadow"))
+                .setActivity(Activity.playing("Fighting with Changpeng Zhao"))
                 .build();
 
         jda.awaitReady();
-
+        CustomFileReader reader = new CustomFileReader();
+        String guildId = reader.getGuildId();
         Guild guild = jda.getGuildById(guildId);
-
         MessageHandler messageHandler = new MessageHandler(jda);
         RoleHandler roleHandler = new RoleHandler();
         ReactionHandler reactionHandler = new ReactionHandler(message);
@@ -73,6 +45,7 @@ public class Main  extends ListenerAdapter {
         MessagePmHandler messagePmHandler = new MessagePmHandler(jda, guild);
         MemberMessageHandler memberMessageHandler = new MemberMessageHandler(jda, guild);
         ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda,guild);
+        AddAllIdHandler addAllIdHandler = new AddAllIdHandler(jda);
         AtomicBoolean terminateThreads = new AtomicBoolean(false); // Флаг для завершения потоков
 
         Thread messageHandlerThread = new Thread(() -> {
@@ -97,6 +70,14 @@ public class Main  extends ListenerAdapter {
                 // Ваша логика для roleHandler
             }
             jda.removeEventListener(roleHandler);
+        });
+
+        Thread addAllIdThread = new Thread(() -> {
+            jda.addEventListener(addAllIdHandler);
+            while (!terminateThreads.get()) {
+                // Ваша логика для roleHandler
+            }
+            jda.removeEventListener(addAllIdHandler);
         });
 
         Thread reactionHandlerThread = new Thread(() -> {
@@ -141,6 +122,7 @@ public class Main  extends ListenerAdapter {
         messageHandlerThread.start();
         roleHandlerThread.start();
         reactionHandlerThread.start();
+        addAllIdThread.start();
 //        LOHandlerThread.start();
 //        PmHandlerThread.start();
 //        AMHandlerThread.start();
@@ -148,6 +130,23 @@ public class Main  extends ListenerAdapter {
 
 
         // Ожидание завершения всех потоков
+    }
 
+    public static void main(String[] args) throws Exception {
+        Bot bot = new Bot();
+        String token="";
+        String portStr = System.getenv("PORT");
+        int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
+        // Создаем HTTP-сервер для "привязки" к порту
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
+        server.start();
+        //Id сервера
+        CustomFileReader reader = new CustomFileReader();
+        String guildId = reader.getGuildId();
+        token = reader.getBotToken();
+        System.out.println("Токен: " + token);
+
+        bot.startBotWithNewToken(token);
     }
 }
