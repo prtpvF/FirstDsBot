@@ -1,12 +1,12 @@
-import Util.Answers;
 import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.*;
@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 
 public class MessageHandler extends ListenerAdapter {
     private String storageFile = "messageStorage.txt";
+    private CustomFileReader reader = new CustomFileReader();
     private JDA jda;
     private Map<String, List<String>> roleMessagesMap;
     private final Object fileLock = new Object();
@@ -30,50 +31,61 @@ public class MessageHandler extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         String messageContent = event.getMessage().getContentRaw();
+        TextChannel channel = event.getGuild().getTextChannelById(reader.GetId(3));
+        if(event.getChannel()==channel) {
+            if (isAdmin(event.getMember())) {
+                if (messageContent.startsWith(".addMessage ")) {
+                    String[] command = messageContent.split(" ", 3); // Разделяем сообщение на три части
 
-        if (messageContent.startsWith(".addMessage ")) {
-            String[] command = messageContent.split(" ", 3); // Разделяем сообщение на три части
+                    if (command.length >= 3) {
+                        String roleName = command[1];
+                        String messageAndTime = command[2];
 
-            if (command.length >= 3) {
-                String roleName = command[1];
-                String messageAndTime = command[2];
-
-                // Преобразуем имя роли в верхний регистр для унификации
-                roleName = roleName.toUpperCase();
-                CustomFileReader reader = new CustomFileReader();
-                String guildlId = reader.GetId(1);
-                Guild guild = jda.getGuildById(guildlId);
-                String channelId = reader.GetId(2);
-                TextChannel sendMessageTextChannel = guild.getTextChannelById(channelId);
+                        // Преобразуем имя роли в верхний регистр для унификации
+                        roleName = roleName.toUpperCase();
+                        CustomFileReader reader = new CustomFileReader();
+                        String guildlId = reader.GetId(2);
+                        Guild guild = jda.getGuildById(guildlId);
+                        String adminChanelId = reader.GetId(3);
+                        TextChannel adminChannel = guild.getTextChannelById(adminChanelId);
+                        TextChannel sendMessageTextChannel = guild.getTextChannelById(3);
 
 
-                // Проверяем, существует ли роль с указанным именем
-                Role role = guild.getRolesByName(roleName, true).stream().findFirst().orElse(null);
+                        // Проверяем, существует ли роль с указанным именем
+                        Role role = guild.getRolesByName(roleName, true).stream().findFirst().orElse(null);
 
-                if (role != null) {
-                    // Роль существует, добавляем сообщение
-                    String finalRoleName = roleName;
-                    executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
+                        if (role != null) {
+                            // Роль существует, добавляем сообщение
+                            String finalRoleName = roleName;
+                            executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
 
-                    sendMessageTextChannel.sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                            adminChannel.sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                        } else {
+                            adminChannel.sendMessage("Такой роли не существует!").queue();
+                        }
+                    } else {
+                        Guild guild = event.getGuild();
+                        CustomFileReader reader = new CustomFileReader();
+                        String adminChannelId = reader.GetId(2);
+                        TextChannel textChannel = guild.getTextChannelById(adminChannelId);
+                        textChannel.sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
+                    }
                 } else {
-                   sendMessageTextChannel.sendMessage("Такой роли не существует!").queue();
+                    Guild guild = event.getGuild();
+                    CustomFileReader reader = new CustomFileReader();
+                    String adminChannelId = reader.GetId(2);
+                    TextChannel textChannel = guild.getTextChannelById(adminChannelId);
+                    textChannel.sendMessage("сообщение пустое");
                 }
-            } else {
-                Guild guild = event.getGuild();
-                CustomFileReader reader = new CustomFileReader();
-                String adminChannelId = reader.GetId(2);
-                TextChannel textChannel = guild.getTextChannelById(adminChannelId);
-              textChannel.sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
             }
         }
-        else {
-            Guild guild = event.getGuild();
-            CustomFileReader reader = new CustomFileReader();
-            String adminChannelId = reader.GetId(2);
-            TextChannel textChannel = guild.getTextChannelById(adminChannelId);
-           textChannel.sendMessage("сообщение пустое");
+    }
+
+    private boolean isAdmin(Member member) {
+        if (member == null) {
+            return false;
         }
+        return member.hasPermission(Permission.ADMINISTRATOR);
     }
 
     private void addMessageForRole(String roleName, String messageAndTime) {

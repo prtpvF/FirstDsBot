@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
-import ReactionHandler.ReactionHandler;
+
 
 import javax.security.auth.login.LoginException;
 import java.net.InetSocketAddress;
@@ -40,12 +40,7 @@ public class Bot extends ListenerAdapter {
         MessageHandler messageHandler = new MessageHandler(jda);
         RoleHandler roleHandler = new RoleHandler();
         ReactionHandler reactionHandler = new ReactionHandler(message);
-        MessageLoHandler messageLoHandler = new MessageLoHandler(jda, guild);
-        MessageAmHandler messageAmHandler = new MessageAmHandler(jda, guild);
-        MessagePmHandler messagePmHandler = new MessagePmHandler(jda, guild);
-        MemberMessageHandler memberMessageHandler = new MemberMessageHandler(jda, guild);
         ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda,guild);
-        AddAllIdHandler addAllIdHandler = new AddAllIdHandler(jda);
         AtomicBoolean terminateThreads = new AtomicBoolean(false); // Флаг для завершения потоков
 
         Thread messageHandlerThread = new Thread(() -> {
@@ -72,13 +67,7 @@ public class Bot extends ListenerAdapter {
             jda.removeEventListener(roleHandler);
         });
 
-        Thread addAllIdThread = new Thread(() -> {
-            jda.addEventListener(addAllIdHandler);
-            while (!terminateThreads.get()) {
-                // Ваша логика для roleHandler
-            }
-            jda.removeEventListener(addAllIdHandler);
-        });
+
 
         Thread reactionHandlerThread = new Thread(() -> {
             jda.addEventListener(reactionHandler);
@@ -88,41 +77,16 @@ public class Bot extends ListenerAdapter {
             jda.removeEventListener(roleHandler);
         });
 
-        Thread LOHandlerThread = new Thread(() -> {
-            jda.addEventListener(messageLoHandler);
-            while (!terminateThreads.get()) {
-                // Ваша логика для roleHandler
-            }
-            jda.removeEventListener(messageLoHandler);
-        });
-        Thread PmHandlerThread = new Thread(() -> {
-            jda.addEventListener(messagePmHandler);
-            while (!terminateThreads.get()) {
-                // Ваша логика для roleHandler
-            }
-            jda.removeEventListener(messagePmHandler);
-        });
-        Thread AMHandlerThread = new Thread(() -> {
-            jda.addEventListener(messageAmHandler);
-            while (!terminateThreads.get()) {
-                // Ваша логика для roleHandler
-            }
-            jda.removeEventListener(messageAmHandler);
-        });
-        Thread MemberHandlerThread = new Thread(() -> {
-            jda.addEventListener(memberMessageHandler);
-            while (!terminateThreads.get()) {
-                // Ваша логика для roleHandler
-            }
-            jda.removeEventListener(memberMessageHandler);
-        });
+
+
+
 
         // Добавьте аналогичные потоки и обработчики для других событий
 
         messageHandlerThread.start();
         roleHandlerThread.start();
         reactionHandlerThread.start();
-        addAllIdThread.start();
+
 //        LOHandlerThread.start();
 //        PmHandlerThread.start();
 //        AMHandlerThread.start();
@@ -136,7 +100,7 @@ public class Bot extends ListenerAdapter {
         Bot bot = new Bot();
         String token="";
         String portStr = System.getenv("PORT");
-        int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
+        int port = (portStr != null) ? Integer.parseInt(portStr) : 8081;
         // Создаем HTTP-сервер для "привязки" к порту
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         // Запускаем HTTP-сервер (в данном случае, он не делает ничего, просто "занимает" порт)
@@ -146,7 +110,6 @@ public class Bot extends ListenerAdapter {
         String guildId = reader.getGuildId();
         token = reader.getBotToken();
         System.out.println("Токен: " + token);
-
         bot.startBotWithNewToken(token);
     }
 }

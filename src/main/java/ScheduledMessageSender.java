@@ -88,7 +88,7 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
     void sendMessage(Role role, String messageContent) {
         CustomFileReader reader = new CustomFileReader();
-        String channelId = reader.GetId(3);
+        String channelId = reader.GetId(4);
         TextChannel channel = guild.getTextChannelById(channelId);
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
         if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){
