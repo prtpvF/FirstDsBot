@@ -40,7 +40,7 @@ public class Bot extends ListenerAdapter {
         MessageHandler messageHandler = new MessageHandler(jda);
         RoleHandler roleHandler = new RoleHandler();
         ReactionHandler reactionHandler = new ReactionHandler(message);
-        ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda,guild);
+        ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda);
         AtomicBoolean terminateThreads = new AtomicBoolean(false); // Флаг для завершения потоков
 
         Thread messageHandlerThread = new Thread(() -> {

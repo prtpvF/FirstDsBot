@@ -17,14 +17,14 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledMessageSender extends ListenerAdapter {
     private ScheduledExecutorService scheduler;
     private JDA jda;
-    private Guild guild;
+      Guild guild;
 
 
-    public ScheduledMessageSender(JDA jda, Guild guild) {
+    public ScheduledMessageSender(JDA jda) {
         this.jda = jda;
-        this.guild = guild;
         this.scheduler = Executors.newScheduledThreadPool(1);
-
+        CustomFileReader fileReader = new CustomFileReader();
+         guild = jda.getGuildById(fileReader.getGuildId());
         // Запуск задачи для отправки сообщений
         startScheduledTask();
 
@@ -60,19 +60,23 @@ public class ScheduledMessageSender extends ListenerAdapter {
                     String messageContent = readMessageContentFromLine(line);
                     LocalTime sendTime = readSendTimeFromLine(line);
 
+
                     if (roleName != null && messageContent != null && sendTime != null) {
-                        Role role = guild.getRolesByName(roleName, true).get(0);
 
-
-                            // Сравниваем время отправки с текущим временем и датой
-                            LocalTime currentTime = LocalTime.now();
-                            if (sendTime.isBefore(currentTime)) {
-                                sendTime = sendTime.plusHours(24); // Переносим на следующий день
-                            }
-
-                            long delayMillis = calculateDelay(currentTime, sendTime);
-                            scheduler.schedule(() -> sendMessage(role, messageContent), delayMillis, TimeUnit.MILLISECONDS);
+                        try{
+                            Role role = guild.getRolesByName(roleName, true).get(0);
+                        // Сравниваем время отправки с текущим временем и датой
+                        LocalTime currentTime = LocalTime.now();
+                        if (sendTime.isBefore(currentTime)) {
+                            sendTime = sendTime.plusHours(24); // Переносим на следующий день
                         }
+
+                        long delayMillis = calculateDelay(currentTime, sendTime);
+                        scheduler.schedule(() -> sendMessage(role, messageContent), delayMillis, TimeUnit.MILLISECONDS);
+                        } catch (IndexOutOfBoundsException e){
+                            System.out.println("Такой роли нет: " + e.getMessage());
+                        }
+                    }
 
 
                 }
@@ -84,11 +88,14 @@ public class ScheduledMessageSender extends ListenerAdapter {
             System.out.println("All messages scheduled.");
         };
         task.run();
-    }
+        }
+
 
     void sendMessage(Role role, String messageContent) {
         CustomFileReader reader = new CustomFileReader();
         String channelId = reader.GetId(4);
+        CustomFileReader fileReader = new CustomFileReader();
+        Guild guild = jda.getGuildById(fileReader.getGuildId());
         TextChannel channel = guild.getTextChannelById(channelId);
         DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
         if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){

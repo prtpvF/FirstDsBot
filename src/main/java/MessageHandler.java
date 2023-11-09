@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import javax.security.auth.login.LoginException;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -44,11 +45,11 @@ public class MessageHandler extends ListenerAdapter {
                         // Преобразуем имя роли в верхний регистр для унификации
                         roleName = roleName.toUpperCase();
                         CustomFileReader reader = new CustomFileReader();
-                        String guildlId = reader.GetId(2);
-                        Guild guild = jda.getGuildById(guildlId);
+                        Guild guild = jda.getGuildById(reader.getGuildId());
                         String adminChanelId = reader.GetId(3);
+                        String senderChannelId = reader.GetId(4);
                         TextChannel adminChannel = guild.getTextChannelById(adminChanelId);
-                        TextChannel sendMessageTextChannel = guild.getTextChannelById(3);
+                        TextChannel sendMessageTextChannel = guild.getTextChannelById(senderChannelId);
 
 
                         // Проверяем, существует ли роль с указанным именем
@@ -78,6 +79,15 @@ public class MessageHandler extends ListenerAdapter {
                     textChannel.sendMessage("сообщение пустое");
                 }
             }
+        }
+        Bot bot = new Bot();
+        jda.shutdown();
+        try {
+            bot.startBotWithNewToken(reader.getBotToken());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (LoginException e) {
+            System.out.println("ошибка считывания токена" + e.getMessage());
         }
     }
 
