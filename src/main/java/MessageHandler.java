@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MessageHandler extends ListenerAdapter {
@@ -21,7 +23,8 @@ public class MessageHandler extends ListenerAdapter {
     private JDA jda;
     private Map<String, List<String>> roleMessagesMap;
     private final Object fileLock = new Object();
-    private ExecutorService executor = Executors.newFixedThreadPool(1); // Один поток для выполнения команд
+    private ExecutorService executor = Executors.newFixedThreadPool(1);
+
 
 
     public MessageHandler(JDA jda) {
@@ -33,9 +36,11 @@ public class MessageHandler extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         String messageContent = event.getMessage().getContentRaw();
         TextChannel channel = event.getGuild().getTextChannelById(reader.GetId(3));
-        if(event.getChannel()==channel) {
+        Bot bot = new Bot();
+        if (event.getChannel() == channel) {
             if (isAdmin(event.getMember())) {
                 if (messageContent.startsWith(".addMessage ")) {
+
                     String[] command = messageContent.split(" ", 3); // Разделяем сообщение на три части
 
                     if (command.length >= 3) {
@@ -44,13 +49,7 @@ public class MessageHandler extends ListenerAdapter {
 
                         // Преобразуем имя роли в верхний регистр для унификации
                         roleName = roleName.toUpperCase();
-                        CustomFileReader reader = new CustomFileReader();
-                        Guild guild = jda.getGuildById(reader.getGuildId());
-                        String adminChanelId = reader.GetId(3);
-                        String senderChannelId = reader.GetId(4);
-                        TextChannel adminChannel = guild.getTextChannelById(adminChanelId);
-                        TextChannel sendMessageTextChannel = guild.getTextChannelById(senderChannelId);
-
+                        Guild guild = event.getGuild();
 
                         // Проверяем, существует ли роль с указанным именем
                         Role role = guild.getRolesByName(roleName, true).stream().findFirst().orElse(null);
@@ -60,18 +59,30 @@ public class MessageHandler extends ListenerAdapter {
                             String finalRoleName = roleName;
                             executor.submit(() -> addMessageForRole(finalRoleName, messageAndTime));
 
-                            adminChannel.sendMessage("Сообщение добавлено для роли " + roleName).queue();
+                            event.getChannel().sendMessage("Сообщение добавлено для роли " + roleName).queue();
                         } else {
-                            adminChannel.sendMessage("Такой роли не существует!").queue();
+                            event.getChannel().sendMessage("Такой роли не существует!").queue();
                         }
                     } else {
-                        Guild guild = event.getGuild();
-                        CustomFileReader reader = new CustomFileReader();
-                        String adminChannelId = reader.GetId(2);
-                        TextChannel textChannel = guild.getTextChannelById(adminChannelId);
-                        textChannel.sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
+                        event.getChannel().sendMessage("Пожалуйста, используйте команду следующим образом: .addMessage \"Название роли\" сообщение-время").queue();
                     }
-                } else {
+
+                    ScheduledMessageSender scheduledMessageSender = new ScheduledMessageSender(jda);
+                    scheduledMessageSender.cancelAllTasks();
+
+                    // Отправка сообщения об успешном завершении
+
+
+                    jda.shutdown();
+                    try {
+                        bot.startBotWithNewToken(reader.getBotToken());
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } catch (LoginException e) {
+                        System.out.println("ошибка считывания токена" + e.getMessage());
+                    }
+                }
+                else {
                     Guild guild = event.getGuild();
                     CustomFileReader reader = new CustomFileReader();
                     String adminChannelId = reader.GetId(2);
@@ -80,17 +91,11 @@ public class MessageHandler extends ListenerAdapter {
                 }
             }
         }
-        Bot bot = new Bot();
-        jda.shutdown();
-        try {
-            bot.startBotWithNewToken(reader.getBotToken());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (LoginException e) {
-            System.out.println("ошибка считывания токена" + e.getMessage());
-        }
     }
 
+
+    
+    
     private boolean isAdmin(Member member) {
         if (member == null) {
             return false;

@@ -17,14 +17,14 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledMessageSender extends ListenerAdapter {
     private ScheduledExecutorService scheduler;
     private JDA jda;
-      Guild guild;
-
+    private Guild guild;
 
     public ScheduledMessageSender(JDA jda) {
         this.jda = jda;
         this.scheduler = Executors.newScheduledThreadPool(1);
         CustomFileReader fileReader = new CustomFileReader();
-         guild = jda.getGuildById(fileReader.getGuildId());
+        guild = jda.getGuildById(fileReader.getGuildId());
+
         // Запуск задачи для отправки сообщений
         startScheduledTask();
 
@@ -43,12 +43,7 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
     private void startScheduledTask() {
         // Остановить предыдущую задачу, если она выполнялась
-        if (!scheduler.isShutdown()) {
-            scheduler.shutdownNow();
-        }
 
-        // Создать новый ScheduledExecutorService
-        scheduler = Executors.newScheduledThreadPool(1);
 
         // Создать новую задачу для отправки сообщений
         Runnable task = () -> {
@@ -60,11 +55,10 @@ public class ScheduledMessageSender extends ListenerAdapter {
                     String messageContent = readMessageContentFromLine(line);
                     LocalTime sendTime = readSendTimeFromLine(line);
 
-
                     if (roleName != null && messageContent != null && sendTime != null) {
+                        Role role = guild.getRolesByName(roleName, true).get(0);
 
-                        try{
-                            Role role = guild.getRolesByName(roleName, true).get(0);
+
                         // Сравниваем время отправки с текущим временем и датой
                         LocalTime currentTime = LocalTime.now();
                         if (sendTime.isBefore(currentTime)) {
@@ -73,9 +67,6 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
                         long delayMillis = calculateDelay(currentTime, sendTime);
                         scheduler.schedule(() -> sendMessage(role, messageContent), delayMillis, TimeUnit.MILLISECONDS);
-                        } catch (IndexOutOfBoundsException e){
-                            System.out.println("Такой роли нет: " + e.getMessage());
-                        }
                     }
 
 
@@ -88,7 +79,7 @@ public class ScheduledMessageSender extends ListenerAdapter {
             System.out.println("All messages scheduled.");
         };
         task.run();
-        }
+    }
 
 
     void sendMessage(Role role, String messageContent) {
@@ -153,4 +144,19 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
         scheduler.scheduleAtFixedRate(this::startScheduledTask, initialDelay, 24 * 60 * 60 * 1000, TimeUnit.MILLISECONDS);
     }
+    public void clearScheduledTasks() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+
+        }
+    }
+    public void cancelAllTasks() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            System.out.println("Отмена всех запланированных задач...");
+            scheduler.shutdownNow();
+            scheduler = Executors.newScheduledThreadPool(1); // создаем новый пул потоков после отмены
+            System.out.println("Все задачи успешно отменены.");
+        }
+    }
+
 }
