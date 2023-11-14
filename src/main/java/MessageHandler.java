@@ -1,3 +1,4 @@
+import Util.Checks;
 import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -36,9 +37,10 @@ public class MessageHandler extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         String messageContent = event.getMessage().getContentRaw();
         TextChannel channel = event.getGuild().getTextChannelById(reader.GetId(3));
+        Checks checks = new Checks();
         Bot bot = new Bot();
         if (event.getChannel() == channel) {
-            if (isAdmin(event.getMember())) {
+            if (checks.isAdmin(event.getMember())) {
                 if (messageContent.startsWith(".addMessage ")) {
 
                     String[] command = messageContent.split(" ", 3); // Разделяем сообщение на три части
@@ -96,12 +98,7 @@ public class MessageHandler extends ListenerAdapter {
 
     
     
-    private boolean isAdmin(Member member) {
-        if (member == null) {
-            return false;
-        }
-        return member.hasPermission(Permission.ADMINISTRATOR);
-    }
+
 
     private void addMessageForRole(String roleName, String messageAndTime) {
         synchronized (fileLock) {
@@ -142,19 +139,5 @@ public class MessageHandler extends ListenerAdapter {
         }
     }
 
-    public void saveMessagesToFile() {
-        synchronized (fileLock) {
-            try {
-                PrintWriter writer = new PrintWriter(new FileWriter(storageFile, true));
-                for (Map.Entry<String, List<String>> entry : roleMessagesMap.entrySet()) {
-                    for (String messageAndTime : entry.getValue()) {
-                        writer.println(messageAndTime);
-                    }
-                }
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+
 }

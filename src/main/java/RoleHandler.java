@@ -1,3 +1,4 @@
+import Util.Checks;
 import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -19,8 +20,9 @@ public class RoleHandler extends ListenerAdapter {
         CustomFileReader reader = new CustomFileReader();
         String[] command = event.getMessage().getContentRaw().split(" ");
         String channelID = reader.GetId(3);
+        Checks checks = new Checks();
         TextChannel channel = event.getJDA().getTextChannelById(channelID);
-        if (isAdmin(event.getMember())) {
+        if (checks.isAdmin(event.getMember())) {
             if (event.getChannel() == channel) {
                 if (command.length > 0 && command[0].equalsIgnoreCase(".addRole")) {
                     String roleName = String.join(" ", command).substring(".addRole".length()).trim();
@@ -45,10 +47,5 @@ public class RoleHandler extends ListenerAdapter {
             }
         }
     }
-    private boolean isAdmin(Member member) {
-        if (member == null) {
-            return false;
-        }
-        return member.hasPermission(Permission.ADMINISTRATOR);
-    }
+
 }
