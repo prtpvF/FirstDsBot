@@ -1,8 +1,8 @@
+import Util.Checks;
+import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -17,27 +17,35 @@ public class RoleHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        CustomFileReader reader = new CustomFileReader();
         String[] command = event.getMessage().getContentRaw().split(" ");
+        String channelID = reader.GetId(3);
+        Checks checks = new Checks();
+        TextChannel channel = event.getJDA().getTextChannelById(channelID);
+        if (checks.isAdmin(event.getMember())) {
+            if (event.getChannel() == channel) {
+                if (command.length > 0 && command[0].equalsIgnoreCase(".addRole")) {
+                    String roleName = String.join(" ", command).substring(".addRole".length()).trim();
 
-        if (command.length > 0 && command[0].equalsIgnoreCase(".addRole")) {
-            String roleName = String.join(" ", command).substring(".addRole".length()).trim();
-
-                System.out.println("роль была добавлена");
+                    System.out.println("роль была добавлена");
 
 
-                // Выполнение метода в отдельном потоке
-                executor.submit(() -> {
-                    Guild guild = event.getGuild();
-                    // Создаем объект роли с указанным именем
-                    Role roleToAdd = guild.createRole()
-                            .setName(roleName)
-                            .complete(); // Блокирующий вызов для получения созданной роли
+                    // Выполнение метода в отдельном потоке
+                    executor.submit(() -> {
+                        Guild guild = event.getGuild();
+                        // Создаем объект роли с указанным именем
+                        Role roleToAdd = guild.createRole()
+                                .setName(roleName)
+                                .complete(); // Блокирующий вызов для получения созданной роли
 
-                    // Добавляем созданную роль на сервер
-                    guild.addRoleToMember(guild.getSelfMember(), roleToAdd).queue();
+                        // Добавляем созданную роль на сервер
+                        guild.addRoleToMember(guild.getSelfMember(), roleToAdd).queue();
 
-                    event.getChannel().sendMessage("Роль " + roleName + " успешно добавлена на сервер.").queue();
-                });
+                        event.getChannel().sendMessage("Роль " + roleName + " успешно добавлена на сервер.").queue();
+                    });
+                }
             }
+        }
     }
+
 }

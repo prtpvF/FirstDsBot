@@ -1,10 +1,5 @@
-Main.class
+ScheduledMessageSender.class
 MessageHandler.class
 RoleHandler.class
-Util\Answers.class
-MessagePmHandler.class
-MemberMessageHandler.class
-Util\ID.class
-MessageLoHandler.class
-ReactionHandler\ReactionHandler.class
-MessageAmHandler.class
+Bot.class
+ReactionHandler.class

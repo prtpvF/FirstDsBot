@@ -1,3 +1,4 @@
+import Util.CustomFileReader;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -18,10 +19,11 @@ public class ScheduledMessageSender extends ListenerAdapter {
     private JDA jda;
     private Guild guild;
 
-    public ScheduledMessageSender(JDA jda, Guild guild) {
+    public ScheduledMessageSender(JDA jda) {
         this.jda = jda;
-        this.guild = guild;
         this.scheduler = Executors.newScheduledThreadPool(1);
+        CustomFileReader fileReader = new CustomFileReader();
+        guild = jda.getGuildById(fileReader.getGuildId());
 
         // Запуск задачи для отправки сообщений
         startScheduledTask();
@@ -41,12 +43,7 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
     private void startScheduledTask() {
         // Остановить предыдущую задачу, если она выполнялась
-        if (!scheduler.isShutdown()) {
-            scheduler.shutdownNow();
-        }
 
-        // Создать новый ScheduledExecutorService
-        scheduler = Executors.newScheduledThreadPool(1);
 
         // Создать новую задачу для отправки сообщений
         Runnable task = () -> {
@@ -62,15 +59,15 @@ public class ScheduledMessageSender extends ListenerAdapter {
                         Role role = guild.getRolesByName(roleName, true).get(0);
 
 
-                            // Сравниваем время отправки с текущим временем и датой
-                            LocalTime currentTime = LocalTime.now();
-                            if (sendTime.isBefore(currentTime)) {
-                                sendTime = sendTime.plusHours(24); // Переносим на следующий день
-                            }
-
-                            long delayMillis = calculateDelay(currentTime, sendTime);
-                            scheduler.schedule(() -> sendMessage(role, messageContent), delayMillis, TimeUnit.MILLISECONDS);
+                        // Сравниваем время отправки с текущим временем и датой
+                        LocalTime currentTime = LocalTime.now();
+                        if (sendTime.isBefore(currentTime)) {
+                            sendTime = sendTime.plusHours(24); // Переносим на следующий день
                         }
+
+                        long delayMillis = calculateDelay(currentTime, sendTime);
+                        scheduler.schedule(() -> sendMessage(role, messageContent), delayMillis, TimeUnit.MILLISECONDS);
+                    }
 
 
                 }
@@ -84,11 +81,19 @@ public class ScheduledMessageSender extends ListenerAdapter {
         task.run();
     }
 
-    void sendMessage(Role role, String messageContent) {
-        TextChannel channel = guild.getTextChannelById("1151906690233540778");
-        DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
 
-        if (channel != null) {
+    void sendMessage(Role role, String messageContent) {
+        CustomFileReader reader = new CustomFileReader();
+        String channelId = reader.GetId(4);
+        CustomFileReader fileReader = new CustomFileReader();
+        Guild guild = jda.getGuildById(fileReader.getGuildId());
+        TextChannel channel = guild.getTextChannelById(channelId);
+        DayOfWeek currentDayOfWeek = LocalDate.now().getDayOfWeek();
+        if(currentDayOfWeek == DayOfWeek.SATURDAY | currentDayOfWeek == DayOfWeek.SUNDAY){
+            channel.sendMessage(" ");
+            System.out.println("суббота/воскресенье, сообщение не будет оптравлено");
+        }
+        else if (channel != null) {
             channel.sendMessage(role.getAsMention() + "\n" + messageContent).queue();
             LocalTime time = LocalTime.now();
             System.out.println("сообщение для Роли из файла отправлено, время отправки " + time);
@@ -139,4 +144,19 @@ public class ScheduledMessageSender extends ListenerAdapter {
 
         scheduler.scheduleAtFixedRate(this::startScheduledTask, initialDelay, 24 * 60 * 60 * 1000, TimeUnit.MILLISECONDS);
     }
+    public void clearScheduledTasks() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+
+        }
+    }
+    public void cancelAllTasks() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            System.out.println("Отмена всех запланированных задач...");
+            scheduler.shutdownNow();
+            scheduler = Executors.newScheduledThreadPool(1); // создаем новый пул потоков после отмены
+            System.out.println("Все задачи успешно отменены.");
+        }
+    }
+
 }
