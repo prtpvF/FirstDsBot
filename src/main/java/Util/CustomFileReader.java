@@ -46,6 +46,8 @@ public class CustomFileReader {
         }
     }
 
+
+
     public String getGuildId(){
         String guildId="";
         try (BufferedReader br = new BufferedReader(new java.io.FileReader("storage.txt"))) {

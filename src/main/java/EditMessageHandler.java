@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class EditMessageHandler extends ListenerAdapter {
     }
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-
+        String role ="";
         Checks checks = new Checks();
         String messageContent = event.getMessage().getContentRaw();
         TextChannel channel = event.getGuild().getTextChannelById(reader.GetId(3));
@@ -33,7 +31,7 @@ public class EditMessageHandler extends ListenerAdapter {
             String[] command = messageContent.split(" ", 3);
             if (command.length >= 2) {
                 System.out.println("метод прошло проверку 2");
-                String role = command[1].toUpperCase();
+                 role = command[1].toUpperCase();
 
                 getMessageForRoleFromFile(channel, role, messages);
 
@@ -44,15 +42,38 @@ public class EditMessageHandler extends ListenerAdapter {
             if (command.length >= 3) {
                 System.out.println(messages.size());
                 int messageId = Integer.parseInt(command[1]);
-                String defaultMessage =  messages.get(1);
+                String defaultMessage =  messages.get(messageId);
                 String newMessage = readMessageContentFromLine(command[2]);
-                messages.set(messageId,newMessage);
-                System.out.println(defaultMessage);
-                System.out.println(newMessage);
+                replaceMessageForRole(role, defaultMessage,newMessage);
+                channel.sendMessage("сообщение измененно").queue();
 
             }
         }
 
+    }
+    public void replaceMessageForRole(String role, String oldMessage, String newMessage) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(storageFile))) {
+            List<String> lines = new ArrayList<>();
+            String currentLine;
+
+            while ((currentLine = reader.readLine()) != null) {
+                if (currentLine.contains(role) && currentLine.contains(oldMessage)) {
+                    currentLine = currentLine.replace(oldMessage, newMessage);
+                }
+                lines.add(currentLine);
+            }
+
+            // Write the updated lines back to the file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(storageFile))) {
+                for (String line : lines) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your needs
+        }
     }
 
     public void getMessageForRoleFromFile(TextChannel channel, String role, List<String> messages) {
